@@ -1,5 +1,3 @@
-> Notar que **X** corresponde al número del grupo asignado.
-
 # Grupo 11
 
 Este es el repositorio del *Grupo 11*, cuyos integrantes son:
@@ -9,21 +7,16 @@ Este es el repositorio del *Grupo 11*, cuyos integrantes son:
 * Alejandro Ismael Ortiz Tapia - 202373572-8
 * Matias Ignacio Romo Vargas - 202373632-5
 * **Tutor**: Camilo Javier Gonzalez Araya
+* **Profesora**: Luz Mairet Chourio Acevedo
 
 
 ## Wiki
-
-> Obtener enlace desde el home de la wiki del repo.
 
 Puede acceder a la Wiki mediante el siguiente [enlace](https://github.com/SmokePythonCL/GRUPO11-2025-PROYINF/wiki)
 
 ## Videos
 
-> Reemplazar con los enlaces correspondientes
-
-* [Video presentación cliente](https://www.youtube.com)
-* [Video presentación avance 1](https://www.youtube.com/)
-* Etc ...
+* [Video presentación cliente](https://aula.usm.cl/mod/resource/view.php?id=6926137)
 
 ## Aspectos técnicos relevantes
 
