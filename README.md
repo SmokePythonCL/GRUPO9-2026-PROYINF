@@ -3,7 +3,7 @@
 Este es el repositorio del *Grupo 11*, cuyos integrantes son:
 
 * Victoria Andrea Medina Castro - 202373586-8
-* Kran Antonio Olivares Rojas - 202373542-2
+* Kran Antonio Olivares Rojas - 202373542-6
 * Alejandro Ismael Ortiz Tapia - 202373572-8
 * Matias Ignacio Romo Vargas - 202373632-5
 * **Tutor**: Camilo Javier Gonzalez Araya
