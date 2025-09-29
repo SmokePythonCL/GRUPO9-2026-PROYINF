@@ -1,4 +1,4 @@
-# Aplicación Node.js con Docker y PostgreSQL
+# Proyecto de Análisis y Diseño de Software
 
 ## Requisitos Previos
 
