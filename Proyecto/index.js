@@ -3,19 +3,12 @@ const pool = require('./db'); // Importar la conexión
 const app = express();
 const port = 3000;
 
-// Middleware para parsear JSON
-app.use(express.json());
-
-// Ruta mejorada para guardar mensajes personalizados en la base de datos
-app.post('/save', async (req, res) => {
+// Ruta de prueba que guarda un mensaje en la base de datos
+app.get('/save', async (req, res) => {
   try {
     await pool.query('CREATE TABLE IF NOT EXISTS messages (id SERIAL PRIMARY KEY, content TEXT)');
-    const { content } = req.body;
-    if (!content || typeof content !== 'string' || !content.trim()) {
-      return res.status(400).json({ error: 'El campo "content" es requerido.' });
-    }
-    await pool.query('INSERT INTO messages (content) VALUES ($1)', [content]);
-    res.json({ message: 'Mensaje guardado en la base de datos', content });
+    await pool.query('INSERT INTO messages (content) VALUES ($1)', ['Hola desde PostgreSQL!']);
+    res.send('Mensaje guardado en la base de datos');
   } catch (err) {
     console.error(err);
     res.status(500).send('Error');

@@ -19,27 +19,14 @@ git clone https://github.com/SmokePythonCL/GRUPO11-2025-PROYINF.git
 
 2. Ejecutar el siguiente comando el cual levantará el servidor y descargará las dependencias.
 
-  ```
   docker compose up --build
-  ```
-  Para ejecutar el entorno React:
-  ```
-  cd frontend/
-  npm run dev
-  ```
+
   (para detener los contenedores)  
-  ```
   docker compose down -v
-  ```
+
 ## Ejecución
 
 Si utiliza Docker Desktop puede correr directamene el proyecto desde ahí.
 
 O por linea de comandos:
-```
 docker run mi-proyecto-node-docker-app:latest
-```
-Luego
-```
-npm run dev
-```
