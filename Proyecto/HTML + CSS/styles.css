@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 /* Reglas para los pasos del formulario multi-step */
 .form-step {
     display: none;
@@ -6,7 +7,6 @@
     display: block;
     animation: fadeIn 0.5s ease-in;
 }
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 body {
     font-family: 'Inter', sans-serif;
@@ -32,4 +32,92 @@ body {
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
+}
+
+/*animaciones faq*/
+.faq-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    font-family: Arial, sans-serif;
+}
+
+.faq-item {
+    padding: 1rem 1rem;
+    margin-top: 2rem;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    transition: background-color 0.3s;
+}
+
+.faq-item:hover {
+    background: #f4f5f7;
+}
+
+.faq-toggle {
+    display: none;
+}
+
+.faq-question {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.faq-icon {
+    font-size: 20px;
+    transition: transform 0.3s;
+}
+
+.faq-answer {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height .6s ease-in-out;
+}
+
+.faq-answer p {
+    padding: 0 20px;
+    margin: 15px 0;
+}
+
+/* Cuando el checkbox está "checked" */
+.faq-toggle:checked ~ .faq-answer {
+    max-height: 200px; /* Ajusta según el contenido */
+}
+
+.faq-toggle:checked ~ .faq-question .faq-icon {
+    transform: rotate(45deg);
+}
+
+.payment-card {
+    transition: all 0.3s ease;
+}
+.payment-card:hover {
+    transform: translateY(-3px);
+}
+.status-pending {
+    color: #f59e0b;
+}
+.status-paid {
+    color: #10b981;
+}
+.status-late {
+    color: #ef4444;
+}
+.benefit-card {
+    transition: all 0.3s ease;
+}
+.benefit-card:hover {
+    transform: translateY(-5px);
+}
+.step-card {
+    transition: all 0.3s ease;
+}
+.step-card:hover {
+    transform: translateY(-5px);
+}
+.login-container {
+    background-image: linear-gradient(to bottom, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05));
 }
