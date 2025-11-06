@@ -19,7 +19,7 @@ export default function ComoFunciona() {
             <div className="bg-amber-500 p-2 rounded-lg">
               <i data-feather="zap" className="text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-800">Flash<span className="text-amber-500">Loan</span></h1>
+            <h1 className="text-2xl font-bold text-gray-800">Prestamo<span className="text-amber-500">CL</span></h1>
           </div>
           <nav className="hidden md:flex space-x-8">
             <Link href="/" className="text-gray-600 hover:text-amber-500 font-medium">Inicio</Link>
@@ -40,7 +40,7 @@ export default function ComoFunciona() {
 
       <section className="bg-gradient-to-r from-amber-500 to-amber-600 py-16 text-white">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">¿Cómo funciona FlashLoan?</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-6">¿Cómo funciona PrestamoCL?</h1>
           <p className="text-xl max-w-3xl mx-auto">Obtén dinero rápido en solo 3 sencillos pasos, completamente online y sin papeleos.</p>
         </div>
       </section>
@@ -82,7 +82,7 @@ export default function ComoFunciona() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-gray-800 mb-4">Nuestra tecnología</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">Lo que hace único a FlashLoan</p>
+            <p className="text-gray-600 max-w-2xl mx-auto">Lo que hace único a PrestamoCL</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <div className="bg-white p-6 rounded-xl shadow-sm">
@@ -130,7 +130,7 @@ export default function ComoFunciona() {
                 <div className="bg-amber-500 p-2 rounded-lg">
                   <i data-feather="zap" className="text-white" />
                 </div>
-                <h3 className="text-xl font-bold">Flash<span className="text-amber-500">Loan</span></h3>
+                <h3 className="text-xl font-bold">Prestamo<span className="text-amber-500">CL</span></h3>
               </div>
               <p className="text-gray-400 mb-4">La forma más rápida y sencilla de obtener dinero cuando lo necesites.</p>
             </div>
@@ -156,7 +156,7 @@ export default function ComoFunciona() {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
-            <p>© 2023 FlashLoan. Todos los derechos reservados.</p>
+            <p>© 2025 PrestamoCL. Todos los derechos reservados.</p>
           </div>
         </div>
       </footer>

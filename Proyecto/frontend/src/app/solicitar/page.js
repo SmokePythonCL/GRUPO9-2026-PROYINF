@@ -6,7 +6,6 @@ import Link from "next/link";
 const comunasPorRegion = {
   'arica': ['Arica', 'Camarones', 'Putre', 'General Lagos'],
   'tarapaca': ['Iquique', 'Alto Hospicio', 'Pozo Almonte'],
-  // (trimmed for brevity; add others as needed)
   'metropolitana': ['Santiago', 'Providencia', 'Las Condes']
 };
 
@@ -17,11 +16,24 @@ export default function Solicitar() {
   const [comuna, setComuna] = useState('');
   const [formData, setFormData] = useState({ nombre: '', rut: '', email: '', telefono: '', fecha: '', direccion: '' });
   const [files, setFiles] = useState({ frente: null, reverso: null, comprobante: null });
+  const [simulationData, setSimulationData] = useState(null);
 
+  // CARGAR DATOS DE SIMULACIÓN
   useEffect(() => {
-    try { if (window.feather && typeof window.feather.replace === 'function') window.feather.replace(); } catch (e) {}
-  }, []);
+    try { 
+      if (window.feather && typeof window.feather.replace === 'function') 
+        window.feather.replace(); 
+    } catch (e) {}
 
+    // Cargar datos de la simulación desde localStorage
+    if (typeof window !== 'undefined') {
+      const savedSimulation = localStorage.getItem('currentSimulation');
+      if (savedSimulation) {
+        setSimulationData(JSON.parse(savedSimulation));
+        console.log('Datos de simulación cargados:', JSON.parse(savedSimulation));
+      }
+    }
+  }, []);
   useEffect(() => {
     if (region && comunasPorRegion[region]) setComunas(comunasPorRegion[region]);
     else setComunas([]);
@@ -63,6 +75,34 @@ export default function Solicitar() {
 
       <main className="container mx-auto px-4 py-8 md:py-12">
         <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
+
+
+             {/* COMPONENTE NUEVO - RESUMEN DE SIMULACIÓN */}
+        {simulationData && (
+          <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Resumen de tu Simulación</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center">
+                <p className="text-sm text-gray-600">Monto</p>
+                <p className="text-lg font-bold text-amber-600">${simulationData.amount.toLocaleString()}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-sm text-gray-600">Plazo</p>
+                <p className="text-lg font-bold text-amber-600">{simulationData.term} meses</p>
+              </div>
+              <div className="text-center">
+                <p className="text-sm text-gray-600">Cuota mensual</p>
+                <p className="text-lg font-bold text-amber-600">${simulationData.monthlyPayment.toLocaleString()}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-sm text-gray-600">Total a pagar</p>
+                <p className="text-lg font-bold text-amber-600">${simulationData.totalPayment.toLocaleString()}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="bg-white rounded-xl shadow-md overflow-hidden"></div>
           <div className="px-6 py-4 border-b border-gray-200">
             <div className="flex justify-between relative">
               <div className="flex-1 flex flex-col items-center relative z-10">

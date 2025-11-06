@@ -17,7 +17,7 @@ export default function Beneficios() {
             <div className="bg-amber-500 p-2 rounded-lg">
               <i data-feather="zap" className="text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-800">Flash<span className="text-amber-500">Loan</span></h1>
+            <h1 className="text-2xl font-bold text-gray-800">Prestamo<span className="text-amber-500">CL</span></h1>
           </div>
           <nav className="hidden md:flex space-x-8">
             <Link href="/" className="text-gray-600 hover:text-amber-500 font-medium">Inicio</Link>
@@ -36,7 +36,7 @@ export default function Beneficios() {
 
       <section className="bg-gradient-to-r from-amber-500 to-amber-600 py-16 text-white">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">Beneficios FlashLoan</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-6">Beneficios PrestamoCL</h1>
           <p className="text-xl max-w-3xl mx-auto">Ventajas exclusivas para nuestros clientes</p>
         </div>
       </section>
@@ -45,8 +45,8 @@ export default function Beneficios() {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
             <div className="flex flex-col justify-center">
-              <h2 className="text-3xl font-bold text-gray-800 mb-6">Por qué elegir FlashLoan</h2>
-              <p className="text-gray-600 mb-6">En FlashLoan nos preocupamos por ofrecerte la mejor experiencia financiera, con beneficios pensados para ti.</p>
+              <h2 className="text-3xl font-bold text-gray-800 mb-6">Por qué elegir PrestamoCL</h2>
+              <p className="text-gray-600 mb-6">En PrestamoCL nos preocupamos por ofrecerte la mejor experiencia financiera, con beneficios pensados para ti.</p>
               <ul className="space-y-4">
                 <li className="flex items-start">
                   <i data-feather="check" className="text-green-500 mr-3 flex-shrink-0" />
@@ -100,7 +100,7 @@ export default function Beneficios() {
                 <div className="bg-amber-500 p-2 rounded-lg">
                   <i data-feather="zap" className="text-white" />
                 </div>
-                <h3 className="text-xl font-bold">Flash<span className="text-amber-500">Loan</span></h3>
+                <h3 className="text-xl font-bold">Prestamo<span className="text-amber-500">CL</span></h3>
               </div>
               <p className="text-gray-400 mb-4">La forma más rápida y sencilla de obtener dinero cuando lo necesites.</p>
             </div>
@@ -126,7 +126,7 @@ export default function Beneficios() {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
-            <p>© 2023 FlashLoan. Todos los derechos reservados.</p>
+            <p>© 2025 PrestamoCL. Todos los derechos reservados.</p>
           </div>
         </div>
       </footer>
