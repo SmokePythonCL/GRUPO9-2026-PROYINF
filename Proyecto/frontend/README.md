@@ -1,36 +1,91 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Frontend (Next.js) – FlashLoan
 
-## Getting Started
+Aplicación Next.js (App Router) que migra las páginas estáticas del proyecto a React/Next y se integra opcionalmente con una API mock para simular el flujo de préstamos.
 
-First, run the development server:
+## Rutas disponibles
+
+- `/` (Inicio): simulador de préstamo, fondo con Vanta y navegación.
+- `/como_funciona`
+- `/beneficios`
+- `/login`
+- `/mi_cuenta`
+- `/prestamo_aceptado`
+- `/solicitar`: formulario multi‑paso con recogida de datos y archivos (mock).
+
+## Requisitos
+
+- Node.js 18+ y npm
+- (Opcional) API mock corriendo en `http://localhost:4000` para funcionalidades de servidor.
+
+## Variables de entorno
+
+- `NEXT_PUBLIC_API_URL`: URL base del backend. Ejemplo: `http://localhost:4000`
+
+Si no se define, el frontend funciona con lógica local (fall‑back) para el simulador en la home. Las páginas que llaman al backend usarán mocks mínimos o mostrarán errores si la API no está disponible.
+
+## Ejecutar en desarrollo
+
+1. Instalar dependencias
+   
+	```bash
+	npm install
+	```
+
+2. (Opcional) Exportar la URL del backend si usarás la API mock
+   
+	```bash
+	export NEXT_PUBLIC_API_URL=http://localhost:4000
+	```
+
+3. Levantar el servidor de desarrollo
+   
+	```bash
+	npm run dev
+	```
+
+La app quedará disponible en http://localhost:3000
+
+## Build y producción
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run build
+npm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Integración con API mock
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+El cliente HTTP está en `src/lib/api.js` (Axios). Si `NEXT_PUBLIC_API_URL` está configurada, se usarán los endpoints:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `POST /api/loans/simulate`
+- `POST /api/loans/submit`
+- `POST /api/auth/login`
+- `GET /api/user`
+- `GET /api/loans/:id/status`
 
-## Learn More
+Para ejecutar la API mock localmente, ve al README del proyecto raíz o corre en la raíz:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run mock
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Dependencias externas (CDN)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Feather Icons y Vanta Waves se cargan dinámicamente en cliente vía CDN. Se requiere conexión a internet para verlos; si fallan, la app se degrada sin romper.
 
-## Deploy on Vercel
+## Docker (opcional)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Con Docker Compose desde la carpeta `Proyecto/` puedes levantar frontend y backend juntos.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+docker compose up --build
+```
+
+Esto expondrá:
+- Frontend: http://localhost:3000
+- API mock: http://localhost:4000
+
+## Problemas comunes
+
+- Puerto 4000 ocupado: cambia `PORT` al lanzar la API mock o libera el puerto.
+- Imágenes externas: algunas usan `next/image` con `unoptimized`. Si quieres optimización, configura dominios en `next.config.mjs`.
+- Lint CSS: puede aparecer una advertencia por `@theme inline` en `globals.css` heredada; no afecta ejecución.

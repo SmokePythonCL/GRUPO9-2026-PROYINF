@@ -1,32 +1,111 @@
-# Proyecto de Análisis y Diseño de Software
+# FlashLoan – Monorepo (Frontend + Mock API)
 
-## Requisitos Previos
+Este proyecto contiene:
+- Frontend en Next.js (carpeta `frontend/`), con migración de las páginas HTML a rutas de App Router.
+- Un backend de prueba (mock API) en Express (`mock-api.js`) para simular flujos sin datos reales.
 
-- [Docker](https://docs.docker.com/get-docker/)
-- [Docker Compose](https://docs.docker.com/compose/install/) (v2.0+)
-- [Node.js](https://nodejs.org/) (opcional, solo para desarrollo local)
-- `curl` o cliente HTTP (para probar endpoints)
+## Requisitos
 
-## Instalación
+- Docker y Docker Compose (recomendado), o bien Node.js 18+ si vas a correr localmente sin contenedores.
+- `curl` o cualquier cliente HTTP para probar endpoints.
 
-### 1. Clonar el repositorio
-git clone https://github.com/SmokePythonCL/GRUPO11-2025-PROYINF.git
-(debe tener docker-desktop abierto en todo momento)
+## Quickstart con Docker
 
-### 2. Ejecutar en terminal:
+Desde la carpeta `Proyecto/`:
 
-1. Deben navegar hasta la carpeta [Proyecto](https://github.com/SmokePythonCL/GRUPO11-2025-PROYINF/tree/main/Proyecto)
+```bash
+docker compose up --build
+```
 
-2. Ejecutar el siguiente comando el cual levantará el servidor y descargará las dependencias.
+Servicios expuestos:
+- Frontend: http://localhost:3000
+- API mock: http://localhost:4000
 
-  docker compose up --build
+Para detener:
 
-  (para detener los contenedores)  
-  docker compose down -v
+```bash
+docker compose down -v
+```
 
-## Ejecución
+## Ejecución local (sin Docker)
 
-Si utiliza Docker Desktop puede correr directamene el proyecto desde ahí.
+Terminal A (API mock):
 
-O por linea de comandos:
-docker run mi-proyecto-node-docker-app:latest
+```bash
+npm install
+npm run mock
+```
+
+Terminal B (Frontend):
+
+```bash
+cd frontend
+npm install
+export NEXT_PUBLIC_API_URL=http://localhost:4000
+npm run dev
+```
+
+Frontend en http://localhost:3000
+
+Más detalles en `frontend/README.md`.
+
+## API Mock – Endpoints
+
+Base URL: `http://localhost:4000`
+
+- Health
+  - GET `/api/health`
+
+- Auth (mock)
+  - POST `/api/auth/login`
+    - Body: `{ "email": "demo@flashloan.cl", "password": "cualquiera" }`
+    - Respuesta: `{ token, user }`
+
+- Simular préstamo
+  - POST `/api/loans/simulate`
+    - Body: `{ "amount": 1000000, "term": 24 }`
+    - Respuesta: `{ amount, term, rate, monthly, total }`
+
+- Enviar solicitud de préstamo
+  - POST `/api/loans/submit`
+    - Body: `{ amount, term, applicant: { ... }, documents: { ... } }`
+    - Respuesta: `{ id, status, eta, summary }`
+
+- Estado de solicitud
+  - GET `/api/loans/:id/status`
+    - Respuesta: `{ id, status, eta, monthly, total }`
+
+- Usuario demo
+  - GET `/api/user`
+    - Respuesta: `{ id, name, email }`
+
+### Ejemplos rápidos (curl)
+
+```bash
+# Health
+curl http://localhost:4000/api/health
+
+# Simular
+curl -X POST http://localhost:4000/api/loans/simulate \
+  -H 'Content-Type: application/json' \
+  -d '{"amount": 1000000, "term": 24}'
+
+# Login
+curl -X POST http://localhost:4000/api/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"demo@flashloan.cl","password":"x"}'
+```
+
+## Estructura relevante
+
+- `frontend/` – Aplicación Next.js
+  - `src/app/` – Rutas de la App Router (inicio, como_funciona, beneficios, etc.)
+  - `src/lib/api.js` – Cliente Axios hacia la API mock
+- `mock-api.js` – Servidor Express con endpoints de prueba
+- `docker-compose.yml` – Orquestación de frontend y backend mock
+
+## Notas
+
+- La API mock guarda datos en memoria (se reinician al reiniciar el proceso).
+- Algunas imágenes externas usan `next/image` con `unoptimized` por simplicidad.
+- Feather y Vanta se cargan desde CDN; requieren internet para renderizar correctamente.
