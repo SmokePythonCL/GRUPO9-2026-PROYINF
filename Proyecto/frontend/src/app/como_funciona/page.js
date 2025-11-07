@@ -6,9 +6,23 @@ import Image from "next/image";
 
 export default function ComoFunciona() {
   useEffect(() => {
-    try {
-      if (window.feather && typeof window.feather.replace === "function") window.feather.replace();
-    } catch (e) {}
+    const loadScript = (src) =>
+      new Promise((resolve, reject) => {
+        if (document.querySelector(`script[src="${src}"]`)) return resolve();
+        const s = document.createElement("script");
+        s.src = src;
+        s.async = true;
+        s.onload = resolve;
+        s.onerror = () => reject(new Error("Failed to load " + src));
+        document.head.appendChild(s);
+      });
+
+    (async () => {
+      try {
+        if (!window.feather) await loadScript("https://unpkg.com/feather-icons");
+        if (window.feather && typeof window.feather.replace === "function") window.feather.replace();
+      } catch (e) {}
+    })();
   }, []);
 
   return (

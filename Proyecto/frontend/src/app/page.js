@@ -2,7 +2,6 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { simulateLoan } from "@/src/lib/api";
 
@@ -68,9 +67,6 @@ export default function Home() {
 
     alert(comparisonMessage);
   };
-
-  const { monthly, total, rateText } = calculateMonthly(amount, term);
-
 
   const [calc, setCalc] = useState(() => calculateMonthly(amount, term));
 
@@ -317,7 +313,7 @@ export default function Home() {
                   <span className="font-bold text-gray-800" id="total-payment">{formatCurrency(calc.total)}</span>
                 </div>
               </div>
-              <button className="w-full bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-lg font-bold transition duration-300 shadow-md">Solicitar este préstamo</button>
+              <button onClick={saveSimulationAndContinue} className="w-full bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-lg font-bold transition duration-300 shadow-md">Solicitar este préstamo</button>
               <p className="text-xs text-gray-500 mt-2 text-center">* Montos preaprobados según tu perfil crediticio</p>
             </div>
           </div>

@@ -74,10 +74,10 @@ export default function Solicitar() {
       </header>
 
       <main className="container mx-auto px-4 py-8 md:py-12">
-        <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
+     <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
 
 
-             {/* COMPONENTE NUEVO - RESUMEN DE SIMULACIÓN */}
+       {/* COMPONENTE NUEVO - RESUMEN DE SIMULACIÓN */}
         {simulationData && (
           <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
             <h2 className="text-xl font-bold text-gray-800 mb-4">Resumen de tu Simulación</h2>
@@ -100,9 +100,7 @@ export default function Solicitar() {
               </div>
             </div>
           </div>
-        )}
-
-        <div className="bg-white rounded-xl shadow-md overflow-hidden"></div>
+  )}
           <div className="px-6 py-4 border-b border-gray-200">
             <div className="flex justify-between relative">
               <div className="flex-1 flex flex-col items-center relative z-10">
