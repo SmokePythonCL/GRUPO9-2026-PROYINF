@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 const comunasPorRegion = {
   'arica': ['Arica', 'Camarones', 'Putre', 'General Lagos'],
@@ -41,7 +42,7 @@ export default function Solicitar() {
   }, [region]);
 
   function nextStep() {
-    setStep((s) => Math.min(3, s + 1));
+    setStep((s) => Math.min(4, s + 1));
   }
   function prevStep() {
     setStep((s) => Math.max(1, s - 1));
@@ -113,10 +114,14 @@ export default function Solicitar() {
               </div>
               <div className="flex-1 flex flex-col items-center relative z-10">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${step>=3? 'bg-amber-500 text-white':'bg-gray-200 text-gray-500'}`}>3</div>
-                <span className={`${step>=3? 'text-amber-500':'text-gray-500'} text-sm font-medium`}>Confirmación</span>
+                <span className={`${step>=3? 'text-amber-500':'text-gray-500'} text-sm font-medium`}>Firma</span>
+              </div>
+              <div className="flex-1 flex flex-col items-center relative z-10">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${step>=4? 'bg-amber-500 text-white':'bg-gray-200 text-gray-500'}`}>4</div>
+                <span className={`${step>=4? 'text-amber-500':'text-gray-500'} text-sm font-medium`}>Confirmación</span>
               </div>
               <div className="absolute top-5 left-0 right-0 h-1 bg-gray-200 z-0">
-                <div className="h-full bg-amber-500" style={{width: step===1? '33%': step===2? '66%':'100%'}} />
+                <div className="h-full bg-amber-500" style={{width: step===1? '25%': step===2? '50%': step===3? '75%':'100%'}} />
               </div>
             </div>
           </div>
@@ -231,6 +236,25 @@ export default function Solicitar() {
 
             {step===3 && (
               <div className="form-step active" id="step-3">
+                <h2 className="text-2xl font-bold text-gray-800 mb-6">Firma de documentos</h2>
+                <p className="text-gray-600 mb-6">Para continuar, debes firmar digitalmente tu solicitud usando ClaveÚnica.</p>
+
+                <div className="bg-gray-50 rounded-lg p-6 flex flex-col items-center">
+                  <div className="w-full max-w-md">
+                    <Image src="/clave_unica.png" alt="Firma con ClaveÚnica" width={800} height={450} className="w-full h-auto rounded-lg shadow" />
+                  </div>
+                  <p className="text-sm text-gray-500 mt-4 text-center">Al hacer clic en “Firmar con ClaveÚnica”, serás redirigido al proveedor de identidad (simulado) y volverás automáticamente.</p>
+                </div>
+
+                <div className="flex justify-between mt-8">
+                  <button type="button" onClick={prevStep} className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg">Anterior</button>
+                  <button type="button" onClick={nextStep} className="px-6 py-3 bg-amber-500 text-white rounded-lg">Firmar con ClaveÚnica</button>
+                </div>
+              </div>
+            )}
+
+            {step===4 && (
+              <div className="form-step active" id="step-4">
                 <h2 className="text-2xl font-bold text-gray-800 mb-6">Confirmación de datos</h2>
                 <p className="text-gray-600 mb-6">Por favor revisa que toda la información sea correcta antes de enviar tu solicitud.</p>
 
