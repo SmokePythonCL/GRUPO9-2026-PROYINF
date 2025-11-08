@@ -15,23 +15,25 @@ RUN \
   else echo "Lockfile not found." && exit 1; \
   fi
 
-
 # Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Next.js collects completely anonymous telemetry data about general usage.
-# Learn more here: https://nextjs.org/telemetry
-# Uncomment the following line in case you want to disable telemetry during the build.
-# ENV NEXT_TELEMETRY_DISABLED 1
+# Debug: verificar estructura de archivos
+RUN echo "=== Current directory ===" && pwd && \
+    echo "=== Files in root ===" && ls -la && \
+    echo "=== src structure ===" && ls -la src/ && \
+    echo "=== lib contents ===" && ls -la src/lib/ && \
+    echo "=== Checking for api.js ===" && \
+    find . -name "api.js" 2>/dev/null || echo "api.js not found" && \
+    echo "=== jsconfig.json content ===" && \
+    cat jsconfig.json && \
+    echo "=== Checking page.js import ===" && \
+    grep -n "from.*@/" src/app/page.js || echo "No @ imports found in page.js"
 
-RUN yarn build && ls -l /app/.next
-
-
-# If using npm comment out above and use below instead
-# RUN npm run build
+RUN yarn build
 
 # Production image, copy all the files and run next
 FROM base AS runner

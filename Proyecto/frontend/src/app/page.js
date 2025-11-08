@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { simulateLoan } from "@/src/lib/api";
+import { simulateLoan } from "@/lib/api";
 
 export default function Home() {
   const vantaRef = useRef(null);
