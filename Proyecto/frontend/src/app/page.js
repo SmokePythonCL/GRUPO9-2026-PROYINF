@@ -2,8 +2,8 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { simulateLoan } from "@/lib/api";
 
 export default function Home() {
   const vantaRef = useRef(null);
@@ -16,12 +16,8 @@ export default function Home() {
   const rate = 0.012; // 1.2% mensual
 
   function formatCurrency(value) {
-    return (
-      "$" + value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")
-    );
+    return "$" + value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   }
-
-  
 
   function calculateMonthly(amountVal, termVal) {
     const monthly = (amountVal * rate) / (1 - Math.pow(1 + rate, -termVal));
@@ -33,7 +29,7 @@ export default function Home() {
     };
   }
 
-    const saveSimulationAndContinue = () => {
+  const saveSimulationAndContinue = () => {
     const { monthly, total } = calculateMonthly(amount, term);
     
     const simulationData = {
@@ -68,32 +64,12 @@ export default function Home() {
     alert(comparisonMessage);
   };
 
-  const [calc, setCalc] = useState(() => calculateMonthly(amount, term));
+  const { monthly, total, rateText } = calculateMonthly(amount, term);
 
   useEffect(() => {
-    let cancelled = false;
-    const run = async () => {
-      try {
-        const data = await simulateLoan(amount, term);
-        if (!cancelled) setCalc({
-          monthly: data.monthly,
-          total: data.total,
-          rateText: (data.rate * 100).toFixed(1) + "% mensual",
-        });
-      } catch (e) {
-        // fallback local calc
-        if (!cancelled) setCalc(calculateMonthly(amount, term));
-      }
-    };
-    run();
-    return () => { cancelled = true; };
-  }, [amount, term]);
-
-  useEffect(() => {
-    // Load Feather icons
     const loadScript = (src) =>
       new Promise((resolve, reject) => {
-        if (document.querySelector(`script[src=\"${src}\"]`)) {
+        if (document.querySelector(`script[src="${src}"]`)) {
           resolve();
           return;
         }
@@ -105,7 +81,6 @@ export default function Home() {
         document.head.appendChild(s);
       });
 
-    // load feather and vanta scripts
     let mounted = true;
     Promise.all([
       loadScript("https://unpkg.com/feather-icons"),
@@ -113,19 +88,14 @@ export default function Home() {
     ])
       .then(() => {
         if (!mounted) return;
-        // replace feather icons
         try {
           if (window.feather && typeof window.feather.replace === "function") {
             window.feather.replace();
           }
-        } catch (e) {
-          // ignore
-        }
+        } catch (e) {}
 
-        // init Vanta
         try {
           if (window.VANTA && window.VANTA.WAVES && vantaRef.current) {
-            // destroy existing
             if (vantaInstance.current && vantaInstance.current.destroy) {
               vantaInstance.current.destroy();
             }
@@ -145,29 +115,21 @@ export default function Home() {
               zoom: 0.75,
             });
           }
-        } catch (e) {
-          // Vanta failed; ignore to avoid breaking page
-          // console.warn(e);
-        }
+        } catch (e) {}
       })
-      .catch(() => {
-        // failed to load some external script; page still usable
-      });
+      .catch(() => {});
 
     return () => {
       mounted = false;
       if (vantaInstance.current && vantaInstance.current.destroy) {
         try {
           vantaInstance.current.destroy();
-        } catch (e) {
-          // ignore
-        }
+        } catch (e) {}
         vantaInstance.current = null;
       }
     };
   }, []);
 
-  // update feather icons each render that may change icons
   useEffect(() => {
     try {
       if (window.feather && typeof window.feather.replace === "function") {
@@ -178,11 +140,7 @@ export default function Home() {
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      <div className="vanta-fallback" />
-
-      <div ref={vantaRef} id="vanta-bg" className="fixed inset-0 -z-10" />
-
-      {/* Header */}
+    <div className="vanta-fallback" />
       <header className="bg-white bg-opacity-90 shadow-sm">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-2">
@@ -213,7 +171,6 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Hero + simulator */}
       <main className="container mx-auto px-4 py-16 md:py-24">
         <div className="flex flex-col md:flex-row items-center">
           <div className="md:w-1/2 mb-12 md:mb-0">
@@ -302,28 +259,83 @@ export default function Home() {
               <div className="bg-gray-50 p-4 rounded-lg mb-6">
                 <div className="flex justify-between mb-2">
                   <span className="text-gray-600">Cuota mensual:</span>
-                  <span className="font-bold text-gray-800" id="monthly-payment">{formatCurrency(calc.monthly)}</span>
+                  <span className="font-bold text-gray-800" id="monthly-payment">{formatCurrency(monthly)}</span>
                 </div>
                 <div className="flex justify-between mb-2">
                   <span className="text-gray-600">Tasa de interés:</span>
-                  <span className="font-bold text-gray-800" id="interest-rate">{calc.rateText}</span>
+                  <span className="font-bold text-gray-800" id="interest-rate">{rateText}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Total a pagar:</span>
-                  <span className="font-bold text-gray-800" id="total-payment">{formatCurrency(calc.total)}</span>
+                  <span className="font-bold text-gray-800" id="total-payment">{formatCurrency(total)}</span>
                 </div>
               </div>
-              <button onClick={saveSimulationAndContinue} className="w-full bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-lg font-bold transition duration-300 shadow-md">Solicitar este préstamo</button>
+              
+              <button 
+                onClick={saveSimulationAndContinue}
+                className="w-full bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-lg font-bold transition duration-300 shadow-md"
+              >
+                Solicitar este préstamo
+              </button>
+
+              <div className="mt-4 text-center">
+                <button 
+                  onClick={showComparison}
+                  className="text-amber-500 hover:text-amber-600 text-sm font-medium flex items-center justify-center mx-auto"
+                >
+                  <i data-feather="bar-chart-2" className="w-4 h-4 mr-1"></i>
+                  Comparar con otros simuladores
+                </button>
+              </div>
+
               <p className="text-xs text-gray-500 mt-2 text-center">* Montos preaprobados según tu perfil crediticio</p>
             </div>
           </div>
         </div>
       </main>
 
-      {/* Footer (simplified) */}
+      <section className="bg-white py-16">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-gray-800 mb-4">¿Por qué elegir PrestamoCL?</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">La forma más rápida y sencilla de obtener dinero cuando lo necesites, sin complicaciones.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="bg-gray-50 p-6 rounded-xl card-hover transition duration-300">
+              <div className="bg-amber-100 w-14 h-14 rounded-full flex items-center justify-center mb-4">
+                <i data-feather="clock" className="text-amber-500 w-6 h-6"></i>
+              </div>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">5 minutos</h3>
+              <p className="text-gray-600">Desde la solicitud hasta el dinero en tu cuenta en solo 5 minutos.</p>
+            </div>
+            <div className="bg-gray-50 p-6 rounded-xl card-hover transition duration-300">
+              <div className="bg-blue-100 w-14 h-14 rounded-full flex items-center justify-center mb-4">
+                <i data-feather="smartphone" className="text-blue-500 w-6 h-6"></i>
+              </div>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">100% digital</h3>
+              <p className="text-gray-600">Todo el proceso desde tu celular, sin papeleos ni trámites presenciales.</p>
+            </div>
+            <div className="bg-gray-50 p-6 rounded-xl card-hover transition duration-300">
+              <div className="bg-amber-100 w-14 h-14 rounded-full flex items-center justify-center mb-4">
+                <i data-feather="dollar-sign" className="text-amber-500 w-6 h-6"></i>
+              </div>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">Mejor tasa</h3>
+              <p className="text-gray-600">Compara y verifica que tenemos las mejores tasas del mercado.</p>
+            </div>
+            <div className="bg-gray-50 p-6 rounded-xl card-hover transition duration-300">
+              <div className="bg-blue-100 w-14 h-14 rounded-full flex items-center justify-center mb-4">
+                <i data-feather="shield" className="text-blue-500 w-6 h-6"></i>
+              </div>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">Seguro</h3>
+              <p className="text-gray-600">Tus datos protegidos con tecnología de encriptación avanzada.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <footer className="bg-gray-900 text-white py-12">
         <div className="container mx-auto px-4">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center space-x-2 mb-4">
                 <div className="bg-amber-500 p-2 rounded-lg">
@@ -345,7 +357,7 @@ export default function Home() {
                 <li><Link href="/" className="hover:text-white">Inicio</Link></li>
                 <li><Link href="/como_funciona" className="hover:text-white">Cómo funciona</Link></li>
                 <li><Link href="/beneficios" className="hover:text-white">Beneficios</Link></li>
-                <li><a href="#" className="hover:text-white">FAQ</a></li>
+                <li><Link href="/faq" className="hover:text-white">FAQ</Link></li>
               </ul>
             </div>
             <div>
