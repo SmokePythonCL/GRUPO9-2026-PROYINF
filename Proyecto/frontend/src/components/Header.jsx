@@ -13,7 +13,7 @@ export default function Header({ active = "" }) {
           </div>
           <h1 className="text-2xl font-bold text-gray-800">Prestamo<span className="text-amber-500">CL</span></h1>
         </Link>
-        <nav className="hidden md:flex space-x-8">
+        <nav className="flex flex-wrap items-center space-x-4">
           <Link href="/" className={`${active==='home' ? 'text-amber-500' : 'text-gray-600 hover:text-amber-500'} font-medium`}>Inicio</Link>
           <Link href="/como_funciona" className={`${active==='como_funciona' ? 'text-amber-500' : 'text-gray-600 hover:text-amber-500'} font-medium`}>Cómo funciona</Link>
           <Link href="/beneficios" className={`${active==='beneficios' ? 'text-amber-500' : 'text-gray-600 hover:text-amber-500'} font-medium`}>Beneficios</Link>
@@ -24,9 +24,6 @@ export default function Header({ active = "" }) {
           <Link href="/solicitar" className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2 rounded-lg font-medium transition duration-300 shadow-md">
             Solicitar préstamo
           </Link>
-          <button className="md:hidden">
-            <i data-feather="menu" />
-          </button>
         </div>
       </div>
     </header>

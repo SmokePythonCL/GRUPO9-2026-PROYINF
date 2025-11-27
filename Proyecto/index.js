@@ -104,7 +104,10 @@ function authMiddleware(req, res, next) {
 // Registro
 app.post('/api/auth/register', async (req, res) => {
   try {
-    console.log('POST /api/auth/register body:', req.body);
+    // No loggear contraseñas ni datos sensibles
+    const safeBody = { ...req.body };
+    if (safeBody.password) safeBody.password = '[REDACTED]';
+    console.log('POST /api/auth/register body:', safeBody);
     const { nombre, apellido_paterno, apellido_materno, nacimiento, rut, password, email } = req.body;
     if (!nombre || !apellido_paterno || !apellido_materno || !nacimiento || !rut || !password || !email) {
       return res.status(400).json({ error: 'Faltan campos: nombre, apellidos, nacimiento, rut, email y contraseña' });
