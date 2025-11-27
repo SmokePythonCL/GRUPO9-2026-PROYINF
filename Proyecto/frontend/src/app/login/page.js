@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { login } from "@/lib/api";
 import SessionLinks from "@/components/SessionLinks";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 export default function Login() {
   const router = useRouter();
@@ -37,25 +39,7 @@ export default function Login() {
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      <header className="bg-white bg-opacity-90 shadow-sm">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <div className="bg-amber-500 p-2 rounded-lg">
-              <i data-feather="zap" className="text-white" />
-            </div>
-            <h1 className="text-2xl font-bold text-gray-800">Flash<span className="text-amber-500">Loan</span></h1>
-          </div>
-          <nav className="hidden md:flex space-x-8">
-            <Link href="/" className="text-gray-600 hover:text-amber-500 font-medium">Inicio</Link>
-            <Link href="/como_funciona" className="text-gray-600 hover:text-amber-500 font-medium">Cómo funciona</Link>
-            <Link href="/beneficios" className="text-gray-600 hover:text-amber-500 font-medium">Beneficios</Link>
-          </nav>
-          <div className="flex items-center space-x-4">
-            <SessionLinks />
-            <Link href="/solicitar" className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2 rounded-lg font-medium transition duration-300 shadow-md">Solicitar préstamo</Link>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       <main className="min-h-screen flex items-center justify-center py-12">
         <div className="w-full max-w-md mx-4">
@@ -88,13 +72,7 @@ export default function Login() {
         </div>
       </main>
 
-      <footer className="bg-gray-900 text-white py-8">
-        <div className="container mx-auto px-4">
-          <div className="text-center">
-            <p className="text-gray-400">© 2023 FlashLoan. Todos los derechos reservados.</p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
