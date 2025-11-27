@@ -7,8 +7,8 @@ RUN npm install
 
 COPY . .
 
-# Default to mock API for black-box testing
+# Backend API
 ENV PORT=4000
 EXPOSE 4000
 
-CMD ["npm", "run", "mock"]
+CMD ["npm", "start"]

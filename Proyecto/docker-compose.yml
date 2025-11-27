@@ -6,6 +6,8 @@ services:
     build:
       context: ./frontend
       dockerfile: frontend.dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: "http://localhost:4000"
     ports:
       - '3000:3000'
     environment:
@@ -23,6 +25,7 @@ services:
       - DB_USER=user
       - DB_PASSWORD=password
       - DB_NAME=mydb
+      - JWT_SECRET=super-secret-dev
     depends_on:
       - postgres_db
     volumes:

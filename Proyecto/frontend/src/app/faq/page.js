@@ -2,6 +2,9 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import SessionLinks from "@/components/SessionLinks";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 export default function FAQ() {
   const [openItems, setOpenItems] = useState({});
@@ -61,35 +64,7 @@ Todos estos son los mismos documentos que se solicitarían en una solicitud de p
   return (
     <div className="bg-gray-50 min-h-screen">
       {/* Header */}
-      <header className="bg-white bg-opacity-90 shadow-sm">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <div className="bg-amber-500 p-2 rounded-lg">
-              <i data-feather="zap" className="text-white" />
-            </div>
-            <h1 className="text-2xl font-bold text-gray-800">
-              Prestamo<span className="text-amber-500">CL</span>
-            </h1>
-          </div>
-          <nav className="hidden md:flex space-x-8">
-            <Link href="/" className="text-gray-600 hover:text-amber-500 font-medium">Inicio</Link>
-            <Link href="/como_funciona" className="text-gray-600 hover:text-amber-500 font-medium">Cómo funciona</Link>
-            <Link href="/beneficios" className="text-gray-600 hover:text-amber-500 font-medium">Beneficios</Link>
-            <Link href="/faq" className="text-amber-500 font-medium">FAQ</Link>
-          </nav>
-          <div className="flex items-center space-x-4">
-            <Link href="/login" className="hidden md:block px-4 py-2 text-gray-600 hover:text-amber-500">
-              <i data-feather="user" />
-            </Link>
-            <Link href="/solicitar" className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2 rounded-lg font-medium transition duration-300 shadow-md">
-              Solicitar préstamo
-            </Link>
-            <button className="md:hidden">
-              <i data-feather="menu" />
-            </button>
-          </div>
-        </div>
-      </header>
+      <Header active="faq" />
 
       {/* FAQ Section */}
       <section className="py-16">
@@ -141,76 +116,7 @@ Todos estos son los mismos documentos que se solicitarían en una solicitud de p
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="bg-amber-500 p-2 rounded-lg">
-                  <i data-feather="zap" className="text-white" />
-                </div>
-                <h3 className="text-xl font-bold">Prestamo<span className="text-amber-500">CL</span></h3>
-              </div>
-              <p className="text-gray-400 mb-4">
-                La forma más rápida y sencilla de obtener dinero cuando lo necesites.
-              </p>
-              <div className="flex space-x-4">
-                <a href="#" className="text-gray-400 hover:text-white">
-                  <i data-feather="facebook" />
-                </a>
-                <a href="#" className="text-gray-400 hover:text-white">
-                  <i data-feather="twitter" />
-                </a>
-                <a href="#" className="text-gray-400 hover:text-white">
-                  <i data-feather="instagram" />
-                </a>
-                <a href="#" className="text-gray-400 hover:text-white">
-                  <i data-feather="linkedin" />
-                </a>
-              </div>
-            </div>
-            <div>
-              <h4 className="text-lg font-bold mb-4">Enlaces útiles</h4>
-              <ul className="space-y-2">
-                <li><Link href="/" className="text-gray-400 hover:text-white">Inicio</Link></li>
-                <li><Link href="/como_funciona" className="text-gray-400 hover:text-white">Cómo funciona</Link></li>
-                <li><Link href="/beneficios" className="text-gray-400 hover:text-white">Beneficios</Link></li>
-                <li><Link href="/faq" className="text-gray-400 hover:text-white">FAQ</Link></li>
-                <li><a href="#" className="text-gray-400 hover:text-white">Contacto</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-lg font-bold mb-4">Legal</h4>
-              <ul className="space-y-2">
-                <li><a href="#" className="text-gray-400 hover:text-white">Términos y condiciones</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white">Política de privacidad</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white">Información legal</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white">Defensa del consumidor</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-lg font-bold mb-4">Contacto</h4>
-              <ul className="space-y-2">
-                <li className="flex items-center">
-                  <i data-feather="mail" className="text-gray-400 mr-2" />
-                  <span className="text-gray-400">hola@PrestamoCL.cl</span>
-                </li>
-                <li className="flex items-center">
-                  <i data-feather="phone" className="text-gray-400 mr-2" />
-                  <span className="text-gray-400">Telefono</span>
-                </li>
-                <li className="flex items-center">
-                  <i data-feather="map-pin" className="text-gray-400 mr-2" />
-                  <span className="text-gray-400">Dirección</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
-            <p>© 2025 PrestamoCL. Todos los derechos reservados.</p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

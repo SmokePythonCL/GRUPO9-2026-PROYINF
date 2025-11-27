@@ -3,6 +3,9 @@
 import React, { useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import SessionLinks from "@/components/SessionLinks";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 export default function Beneficios() {
   useEffect(() => {
@@ -26,28 +29,7 @@ export default function Beneficios() {
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      <header className="bg-white bg-opacity-90 shadow-sm">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <div className="bg-amber-500 p-2 rounded-lg">
-              <i data-feather="zap" className="text-white" />
-            </div>
-            <h1 className="text-2xl font-bold text-gray-800">Prestamo<span className="text-amber-500">CL</span></h1>
-          </div>
-          <nav className="hidden md:flex space-x-8">
-            <Link href="/" className="text-gray-600 hover:text-amber-500 font-medium">Inicio</Link>
-            <Link href="/como_funciona" className="text-gray-600 hover:text-amber-500 font-medium">Cómo funciona</Link>
-            <Link href="/beneficios" className="text-amber-500 font-medium">Beneficios</Link>
-            <a href="#" className="text-gray-600 hover:text-amber-500 font-medium">FAQ</a>
-            <Link href="/solicitar" className="text-gray-600 hover:text-amber-500 font-medium">Solicitar Préstamo</Link>
-          </nav>
-          <div className="flex items-center space-x-4">
-            <Link href="/login" className="hidden md:block px-4 py-2 text-gray-600 hover:text-amber-500"><i data-feather="user" /></Link>
-            <Link href="/solicitar" className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2 rounded-lg font-medium transition duration-300 shadow-md">Solicitar préstamo</Link>
-            <button className="md:hidden"><i data-feather="menu" /></button>
-          </div>
-        </div>
-      </header>
+      <Header active="beneficios" />
 
       <section className="bg-gradient-to-r from-amber-500 to-amber-600 py-16 text-white">
         <div className="container mx-auto px-4 text-center">
@@ -101,50 +83,17 @@ export default function Beneficios() {
           <h2 className="text-3xl font-bold mb-6">¿Qué esperas para unirte?</h2>
           <p className="text-xl mb-8 max-w-2xl mx-auto">Comienza ahora y disfruta de todos estos beneficios.</p>
           <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-            <Link href="/solicitar" className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 rounded-lg font-bold transition duration-300 shadow-lg"> <i data-feather="zap" className="inline mr-2" /> Solicitar préstamo</Link>
             <Link href="/login" className="border-2 border-white text-white hover:bg-white hover:text-blue-600 px-8 py-4 rounded-lg font-bold transition duration-300"> <i data-feather="user" className="inline mr-2" /> Crear cuenta</Link>
           </div>
+            <div className="flex justify-center">
+              <Link href="/solicitar" className="bg-amber-500 hover:bg-amber-600 text-white px-8 py-4 rounded-lg font-bold transition duration-300 shadow-lg"> 
+                <i data-feather="zap" className="inline mr-2" /> Solicitar préstamo
+              </Link>
+            </div>
         </div>
       </section>
 
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="bg-amber-500 p-2 rounded-lg">
-                  <i data-feather="zap" className="text-white" />
-                </div>
-                <h3 className="text-xl font-bold">Prestamo<span className="text-amber-500">CL</span></h3>
-              </div>
-              <p className="text-gray-400 mb-4">La forma más rápida y sencilla de obtener dinero cuando lo necesites.</p>
-            </div>
-            <div>
-              <h4 className="text-lg font-bold mb-4">Enlaces útiles</h4>
-              <ul className="space-y-2">
-                <li><Link href="/" className="text-gray-400 hover:text-white">Inicio</Link></li>
-                <li><Link href="/como_funciona" className="text-gray-400 hover:text-white">Cómo funciona</Link></li>
-                <li><Link href="/beneficios" className="text-gray-400 hover:text-white">Beneficios</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-lg font-bold mb-4">Legal</h4>
-              <ul className="space-y-2">
-                <li><a href="#" className="text-gray-400 hover:text-white">Términos y condiciones</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-lg font-bold mb-4">Contacto</h4>
-              <ul className="space-y-2">
-                <li className="flex items-center"><i data-feather="mail" className="text-gray-400 mr-2" /> hola@flashloan.cl</li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
-            <p>© 2025 PrestamoCL. Todos los derechos reservados.</p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

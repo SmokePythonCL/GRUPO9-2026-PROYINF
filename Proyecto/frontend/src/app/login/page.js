@@ -3,18 +3,36 @@
 import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { login } from "@/lib/api";
+import SessionLinks from "@/components/SessionLinks";
 
 export default function Login() {
   const router = useRouter();
 
   useEffect(() => {
+    // Si ya hay sesión, redirigimos a mi cuenta
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    if (token) {
+      router.replace('/mi_cuenta');
+    }
+  }, [router]);
+
+  useEffect(() => {
     try { if (window.feather && typeof window.feather.replace === "function") window.feather.replace(); } catch (e) {}
   }, []);
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    // TODO: replace by real auth
-    router.push('/mi_cuenta');
+    const form = new FormData(e.currentTarget);
+    const email = form.get('email');
+    const password = form.get('password');
+    try {
+      const { token } = await login(email, password);
+      localStorage.setItem('token', token);
+      router.push('/mi_cuenta');
+    } catch (err) {
+      alert('Credenciales inválidas');
+    }
   }
 
   return (
@@ -33,6 +51,7 @@ export default function Login() {
             <Link href="/beneficios" className="text-gray-600 hover:text-amber-500 font-medium">Beneficios</Link>
           </nav>
           <div className="flex items-center space-x-4">
+            <SessionLinks />
             <Link href="/solicitar" className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2 rounded-lg font-medium transition duration-300 shadow-md">Solicitar préstamo</Link>
           </div>
         </div>
@@ -62,7 +81,7 @@ export default function Login() {
                   <a href="#" className="text-sm text-amber-500 hover:text-amber-600">¿Olvidaste tu contraseña?</a>
                 </div>
                 <button type="submit" className="w-full bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-lg font-bold transition duration-300 shadow-md mb-4">Ingresar</button>
-                <div className="text-center text-sm text-gray-600">¿No tienes cuenta? <a href="#" className="text-amber-500 hover:text-amber-600 font-medium">Regístrate</a></div>
+                <div className="text-center text-sm text-gray-600">¿No tienes cuenta? <Link href="/registro" className="text-amber-500 hover:text-amber-600 font-medium">Regístrate</Link></div>
               </form>
             </div>
           </div>

@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import SessionLinks from "@/components/SessionLinks";
 
 export default function PrestamoAceptado() {
   const [dueDate, setDueDate] = useState('');
@@ -32,6 +33,7 @@ export default function PrestamoAceptado() {
             </div>
             <h1 className="text-2xl font-bold text-gray-800">Flash<span className="text-amber-500">Loan</span></h1>
           </div>
+          <SessionLinks />
         </div>
       </header>
 

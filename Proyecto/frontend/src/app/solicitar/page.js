@@ -3,6 +3,9 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import SessionLinks from "@/components/SessionLinks";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 const comunasPorRegion = {
   'arica': ['Arica', 'Camarones', 'Putre', 'General Lagos'],
@@ -18,6 +21,9 @@ export default function Solicitar() {
   const [formData, setFormData] = useState({ nombre: '', rut: '', email: '', telefono: '', fecha: '', direccion: '' });
   const [files, setFiles] = useState({ frente: null, reverso: null, comprobante: null });
   const [simulationData, setSimulationData] = useState(null);
+  const [isValidStep1, setIsValidStep1] = useState(false);
+  const [isValidStep2, setIsValidStep2] = useState(false);
+  const [isValidStep3, setIsValidStep3] = useState(true); // firma simulada
 
   // CARGAR DATOS DE SIMULACIÓN
   useEffect(() => {
@@ -41,7 +47,23 @@ export default function Solicitar() {
     setComuna('');
   }, [region]);
 
+  // Validación por pasos
+  useEffect(() => {
+    const ok = Boolean(
+      formData.rut && formData.nombre && formData.email && formData.telefono && formData.fecha && formData.direccion && region && comuna
+    );
+    setIsValidStep1(ok);
+  }, [formData, region, comuna]);
+
+  useEffect(() => {
+    const ok = Boolean(files.frente && files.reverso && files.comprobante);
+    setIsValidStep2(ok);
+  }, [files]);
+
   function nextStep() {
+    if (step === 1 && !isValidStep1) return;
+    if (step === 2 && !isValidStep2) return;
+    if (step === 3 && !isValidStep3) return;
     setStep((s) => Math.min(4, s + 1));
   }
   function prevStep() {
@@ -59,20 +81,7 @@ export default function Solicitar() {
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      <header className="bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <div className="bg-amber-500 p-2 rounded-lg"><i data-feather="zap" className="text-white" /></div>
-            <h1 className="text-2xl font-bold text-gray-800">Prestamo<span className="text-amber-500">CL</span></h1>
-          </div>
-          <div className="flex items-center space-x-4">
-            <Link href="/" className="hidden md:block px-4 py-2 text-gray-600 hover:text-amber-500"><i data-feather="home" /></Link>
-            <Link href="/como_funciona" className="hidden md:block px-4 py-2 text-gray-600 hover:text-amber-500"><i data-feather="help-circle" /></Link>
-            <Link href="/beneficios" className="hidden md:block px-4 py-2 text-gray-600 hover:text-amber-500"><i data-feather="gift" /></Link>
-            <Link href="/login" className="hidden md:block px-4 py-2 text-gray-600 hover:text-amber-500"><i data-feather="user" /></Link>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       <main className="container mx-auto px-4 py-8 md:py-12">
      <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
@@ -190,7 +199,7 @@ export default function Solicitar() {
 
                 <div className="flex justify-between mt-8">
                   <Link href="/" className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg">Cancelar</Link>
-                  <button type="button" onClick={nextStep} className="px-6 py-3 bg-amber-500 text-white rounded-lg">Siguiente</button>
+                  <button type="button" onClick={nextStep} disabled={!isValidStep1} className={`px-6 py-3 rounded-lg ${isValidStep1 ? 'bg-amber-500 text-white' : 'bg-gray-300 text-gray-600 cursor-not-allowed'}`}>Siguiente</button>
                 </div>
               </div>
             )}
@@ -229,7 +238,7 @@ export default function Solicitar() {
 
                 <div className="flex justify-between mt-8">
                   <button type="button" onClick={prevStep} className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg">Anterior</button>
-                  <button type="button" onClick={nextStep} className="px-6 py-3 bg-amber-500 text-white rounded-lg">Siguiente</button>
+                  <button type="button" onClick={nextStep} disabled={!isValidStep2} className={`px-6 py-3 rounded-lg ${isValidStep2 ? 'bg-amber-500 text-white' : 'bg-gray-300 text-gray-600 cursor-not-allowed'}`}>Siguiente</button>
                 </div>
               </div>
             )}
@@ -320,6 +329,7 @@ export default function Solicitar() {
           </form>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

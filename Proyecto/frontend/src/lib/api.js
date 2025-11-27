@@ -6,6 +6,14 @@ const client = axios.create({
   baseURL: BASE_URL,
 });
 
+client.interceptors.request.use((config) => {
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('token');
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 export async function simulateLoan(amount, term) {
   if (!BASE_URL) throw new Error('No API configured');
   const { data } = await client.post('/api/loans/simulate', { amount, term });
@@ -24,9 +32,23 @@ export async function login(email, password) {
   return data;
 }
 
+export async function register(payload) {
+  if (!BASE_URL) throw new Error('No API configured');
+  const { data } = await client.post('/api/auth/register', payload);
+  return data;
+}
+
 export async function getUser() {
   if (!BASE_URL) throw new Error('No API configured');
   const { data } = await client.get('/api/user');
+  return data;
+}
+
+export async function uploadDocuments(formData) {
+  if (!BASE_URL) throw new Error('No API configured');
+  const { data } = await client.post('/api/user/documents', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
   return data;
 }
 
