@@ -20,29 +20,55 @@ app.use(cors({
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Preparar carpeta uploads
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
 
+// Multer
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadDir),
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname);
-    const name = `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`;
-    cb(null, name);
+    cb(null, `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`);
   }
 });
 const upload = multer({
   storage,
   fileFilter: (req, file, cb) => {
     const mime = file.mimetype || '';
-    if (mime.startsWith('image/') || mime === 'application/pdf') {
-      return cb(null, true);
-    }
+    if (mime.startsWith('image/') || mime === 'application/pdf') return cb(null, true);
     cb(new Error('Formato no permitido'));
   }
 });
 
-// Middleware para validar token
+// -------------------------------------------------------------
+// 🔥 Crear columnas automáticamente (incluye telefono)
+// -------------------------------------------------------------
+async function initSchema() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS users (
+      id SERIAL PRIMARY KEY,
+      nombre TEXT NOT NULL,
+      nacimiento DATE NOT NULL,
+      rut TEXT UNIQUE NOT NULL,
+      apellido_paterno TEXT NOT NULL,
+      apellido_materno TEXT NOT NULL,
+      email TEXT UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
+      telefono TEXT DEFAULT '',
+      created_at TIMESTAMP DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS telefono TEXT DEFAULT ''`);
+}
+
+initSchema().catch(e => console.error("Error creando tablas:", e));
+
+
+// -------------------------------------------------------------
+// Middleware token
+// -------------------------------------------------------------
 function authMiddleware(req, res, next) {
   const auth = req.headers.authorization || '';
   const token = auth.startsWith('Bearer ') ? auth.slice(7) : null;
@@ -51,17 +77,19 @@ function authMiddleware(req, res, next) {
   try {
     req.user = jwt.verify(token, JWT_SECRET);
     next();
-  } catch (e) {
-    return res.status(401).json({ error: 'Token inválido' });
+  } catch {
+    res.status(401).json({ error: 'Token inválido' });
   }
 }
 
+// -------------------------------------------------------------
 // Login
+// -------------------------------------------------------------
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    const q = await pool.query(`SELECT * FROM users WHERE email=$1`, [email]);
 
+    const q = await pool.query(`SELECT * FROM users WHERE email=$1`, [email]);
     const user = q.rows[0];
     if (!user) return res.status(401).json({ error: 'Usuario no encontrado' });
 
@@ -78,7 +106,8 @@ app.post('/api/auth/login', async (req, res) => {
         apellido_materno: user.apellido_materno,
         nacimiento: user.nacimiento,
         rut: user.rut,
-        email: user.email
+        email: user.email,
+        telefono: user.telefono
       },
       token
     });
@@ -87,44 +116,78 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
+// -------------------------------------------------------------
 // Obtener perfil
+// -------------------------------------------------------------
 app.get('/api/user', authMiddleware, async (req, res) => {
   const q = await pool.query(
-    "SELECT id, nombre, apellido_paterno, apellido_materno, nacimiento, rut, email FROM users WHERE id=$1",
+    "SELECT id, nombre, apellido_paterno, apellido_materno, nacimiento, rut, email, telefono FROM users WHERE id=$1",
     [req.user.id]
   );
   res.json(q.rows[0]);
 });
 
+// -------------------------------------------------------------
 // Actualizar usuario
+// -------------------------------------------------------------
 app.put('/api/user/update', authMiddleware, async (req, res) => {
   try {
     const userId = req.user.id;
-    const { nombre, email } = req.body;
 
-    if (!nombre || !email)
-      return res.status(400).json({ error: "Nombre y email son obligatorios." });
+    const {
+      nombre,
+      apellido_paterno,
+      apellido_materno,
+      nacimiento,
+      email,
+      telefono
+    } = req.body;
 
-    // Validar email repetido
-    const exist = await pool.query(
-      "SELECT id FROM users WHERE email=$1 AND id<>$2",
-      [email, userId]
-    );
+    const fields = [];
+    const values = [];
 
-    if (exist.rows.length > 0)
-      return res.status(409).json({ error: "Email ya registrado por otro usuario." });
+    function addField(fieldName, fieldValue) {
+      if (fieldValue !== undefined) {
+        fields.push(`${fieldName} = $${fields.length + 1}`);
+        values.push(fieldValue);
+      }
+    }
 
-    // Actualizar SOLO nombre y email (lo demás se preserva)
-    const updated = await pool.query(
-      `UPDATE users
-       SET nombre=$1,
-           email=$2
-       WHERE id=$3
-       RETURNING id, nombre, apellido_paterno, apellido_materno, nacimiento, rut, email`,
-      [nombre, email, userId]
-    );
+    addField("nombre", nombre);
+    addField("apellido_paterno", apellido_paterno);
+    addField("apellido_materno", apellido_materno);
+    addField("nacimiento", nacimiento);
+    addField("email", email);
+    addField("telefono", telefono);
+
+    if (fields.length === 0)
+      return res.status(400).json({ error: "No hay datos para actualizar." });
+
+    // Validar email repetido solo si se intenta cambiar
+    if (email !== undefined) {
+      const exist = await pool.query(
+        "SELECT id FROM users WHERE email=$1 AND id<>$2",
+        [email, userId]
+      );
+
+      if (exist.rows.length > 0)
+        return res.status(409).json({ error: "Email ya registrado por otro usuario." });
+    }
+
+    // Construcción del UPDATE dinámico
+    const query = `
+      UPDATE users
+      SET ${fields.join(", ")}
+      WHERE id = $${fields.length + 1}
+      RETURNING id, nombre, apellido_paterno, apellido_materno, nacimiento, rut, email, telefono
+    `;
+
+    values.push(userId);
+
+    const updated = await pool.query(query, values);
 
     res.json(updated.rows[0]);
+
   } catch (err) {
     console.error("UPDATE ERROR:", err);
     res.status(500).json({ error: "Error interno" });

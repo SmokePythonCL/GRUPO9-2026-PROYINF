@@ -18,45 +18,91 @@ export default function Solicitar() {
   const [region, setRegion] = useState('');
   const [comunas, setComunas] = useState([]);
   const [comuna, setComuna] = useState('');
-  const [formData, setFormData] = useState({ nombre: '', rut: '', email: '', telefono: '', fecha: '', direccion: '' });
-  const [files, setFiles] = useState({ frente: null, reverso: null, comprobante: null });
+
+  const [formData, setFormData] = useState({
+    nombre: '',
+    rut: '',
+    email: '',
+    telefono: '',
+    fecha: '',
+    direccion: ''
+  });
+
+  const [files, setFiles] = useState({
+    frente: null,
+    reverso: null,
+    comprobante: null
+  });
+
   const [simulationData, setSimulationData] = useState(null);
   const [isValidStep1, setIsValidStep1] = useState(false);
   const [isValidStep2, setIsValidStep2] = useState(false);
-  const [isValidStep3, setIsValidStep3] = useState(true); // firma simulada
+  const [isValidStep3, setIsValidStep3] = useState(true);
 
-  // CARGAR DATOS DE SIMULACIÓN
+  // -----------------------------------------------------
+  // 🔥 Cargar datos del usuario desde backend
+  // -----------------------------------------------------
   useEffect(() => {
-    try { 
-      if (window.feather && typeof window.feather.replace === 'function') 
-        window.feather.replace(); 
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    fetch("http://localhost:4000/api/user", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => res.json())
+      .then((user) => {
+        if (!user) return;
+
+        setFormData((prev) => ({
+          ...prev,
+          nombre: user.nombre || "",
+          rut: user.rut || "",
+          email: user.email || "",
+          telefono: user.telefono || ""
+        }));
+      })
+      .catch((err) => console.error("Error cargando usuario:", err));
+  }, []);
+
+  // -----------------------------------------------------
+
+  useEffect(() => {
+    try {
+      if (window.feather && typeof window.feather.replace === "function")
+        window.feather.replace();
     } catch (e) {}
 
-    // Cargar datos de la simulación desde localStorage
-    if (typeof window !== 'undefined') {
-      const savedSimulation = localStorage.getItem('currentSimulation');
+    if (typeof window !== "undefined") {
+      const savedSimulation = localStorage.getItem("currentSimulation");
       if (savedSimulation) {
         setSimulationData(JSON.parse(savedSimulation));
-        console.log('Datos de simulación cargados:', JSON.parse(savedSimulation));
       }
     }
   }, []);
+
   useEffect(() => {
     if (region && comunasPorRegion[region]) setComunas(comunasPorRegion[region]);
     else setComunas([]);
     setComuna('');
   }, [region]);
 
-  // Validación por pasos
   useEffect(() => {
     const ok = Boolean(
-      formData.rut && formData.nombre && formData.email && formData.telefono && formData.fecha && formData.direccion && region && comuna
+      formData.rut &&
+        formData.nombre &&
+        formData.email &&
+        formData.telefono &&
+        formData.fecha &&
+        formData.direccion &&
+        region &&
+        comuna
     );
     setIsValidStep1(ok);
   }, [formData, region, comuna]);
 
   useEffect(() => {
-    const ok = Boolean(files.frente && files.reverso && files.comprobante);
+    const ok =
+      Boolean(files.frente && files.reverso && files.comprobante);
     setIsValidStep2(ok);
   }, [files]);
 
@@ -66,6 +112,7 @@ export default function Solicitar() {
     if (step === 3 && !isValidStep3) return;
     setStep((s) => Math.min(4, s + 1));
   }
+
   function prevStep() {
     setStep((s) => Math.max(1, s - 1));
   }
@@ -76,7 +123,7 @@ export default function Solicitar() {
 
   function handleSubmit(e) {
     e.preventDefault();
-    alert('¡Solicitud enviada con éxito! Nos pondremos en contacto contigo en breve.');
+    alert("¡Solicitud enviada con éxito!");
   }
 
   return (
@@ -84,58 +131,140 @@ export default function Solicitar() {
       <Header />
 
       <main className="container mx-auto px-4 py-8 md:py-12">
-     <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
+        <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
 
-
-       {/* COMPONENTE NUEVO - RESUMEN DE SIMULACIÓN */}
-        {simulationData && (
-          <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Resumen de tu Simulación</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center">
-                <p className="text-sm text-gray-600">Monto</p>
-                <p className="text-lg font-bold text-amber-600">${simulationData.amount.toLocaleString()}</p>
-              </div>
-              <div className="text-center">
-                <p className="text-sm text-gray-600">Plazo</p>
-                <p className="text-lg font-bold text-amber-600">{simulationData.term} meses</p>
-              </div>
-              <div className="text-center">
-                <p className="text-sm text-gray-600">Cuota mensual</p>
-                <p className="text-lg font-bold text-amber-600">${simulationData.monthlyPayment.toLocaleString()}</p>
-              </div>
-              <div className="text-center">
-                <p className="text-sm text-gray-600">Total a pagar</p>
-                <p className="text-lg font-bold text-amber-600">${simulationData.totalPayment.toLocaleString()}</p>
+          {/* RESUMEN DE SIMULACIÓN */}
+          {simulationData && (
+            <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+              <h2 className="text-xl font-bold text-gray-800 mb-4">
+                Resumen de tu Simulación
+              </h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center">
+                  <p className="text-sm text-gray-600">Monto</p>
+                  <p className="text-lg font-bold text-amber-600">
+                    ${simulationData.amount.toLocaleString()}
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm text-gray-600">Plazo</p>
+                  <p className="text-lg font-bold text-amber-600">
+                    {simulationData.term} meses
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm text-gray-600">Cuota mensual</p>
+                  <p className="text-lg font-bold text-amber-600">
+                    ${simulationData.monthlyPayment.toLocaleString()}
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm text-gray-600">Total a pagar</p>
+                  <p className="text-lg font-bold text-amber-600">
+                    ${simulationData.totalPayment.toLocaleString()}
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
-  )}
+          )}
+
+          {/* BARRA DE PASOS */}
           <div className="px-6 py-4 border-b border-gray-200">
             <div className="flex justify-between relative">
               <div className="flex-1 flex flex-col items-center relative z-10">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${step>=1? 'bg-amber-500 text-white':'bg-gray-200 text-gray-500'}`}>1</div>
-                <span className={`${step>=1? 'text-amber-500':'text-gray-500'} text-sm font-medium`}>Datos personales</span>
+                <div
+                  className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
+                    step >= 1
+                      ? "bg-amber-500 text-white"
+                      : "bg-gray-200 text-gray-500"
+                  }`}
+                >
+                  1
+                </div>
+                <span
+                  className={`${
+                    step >= 1 ? "text-amber-500" : "text-gray-500"
+                  } text-sm font-medium`}
+                >
+                  Datos personales
+                </span>
               </div>
+
               <div className="flex-1 flex flex-col items-center relative z-10">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${step>=2? 'bg-amber-500 text-white':'bg-gray-200 text-gray-500'}`}>2</div>
-                <span className={`${step>=2? 'text-amber-500':'text-gray-500'} text-sm font-medium`}>Documentos</span>
+                <div
+                  className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
+                    step >= 2
+                      ? "bg-amber-500 text-white"
+                      : "bg-gray-200 text-gray-500"
+                  }`}
+                >
+                  2
+                </div>
+                <span
+                  className={`${
+                    step >= 2 ? "text-amber-500" : "text-gray-500"
+                  } text-sm font-medium`}
+                >
+                  Documentos
+                </span>
               </div>
+
               <div className="flex-1 flex flex-col items-center relative z-10">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${step>=3? 'bg-amber-500 text-white':'bg-gray-200 text-gray-500'}`}>3</div>
-                <span className={`${step>=3? 'text-amber-500':'text-gray-500'} text-sm font-medium`}>Firma</span>
+                <div
+                  className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
+                    step >= 3
+                      ? "bg-amber-500 text-white"
+                      : "bg-gray-200 text-gray-500"
+                  }`}
+                >
+                  3
+                </div>
+                <span
+                  className={`${
+                    step >= 3 ? "text-amber-500" : "text-gray-500"
+                  } text-sm font-medium`}
+                >
+                  Firma
+                </span>
               </div>
+
               <div className="flex-1 flex flex-col items-center relative z-10">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${step>=4? 'bg-amber-500 text-white':'bg-gray-200 text-gray-500'}`}>4</div>
-                <span className={`${step>=4? 'text-amber-500':'text-gray-500'} text-sm font-medium`}>Confirmación</span>
+                <div
+                  className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
+                    step >= 4
+                      ? "bg-amber-500 text-white"
+                      : "bg-gray-200 text-gray-500"
+                  }`}
+                >
+                  4
+                </div>
+                <span
+                  className={`${
+                    step >= 4 ? "text-amber-500" : "text-gray-500"
+                  } text-sm font-medium`}
+                >
+                  Confirmación
+                </span>
               </div>
+
               <div className="absolute top-5 left-0 right-0 h-1 bg-gray-200 z-0">
-                <div className="h-full bg-amber-500" style={{width: step===1? '25%': step===2? '50%': step===3? '75%':'100%'}} />
+                <div
+                  className="h-full bg-amber-500"
+                  style={{
+                    width:
+                      step === 1
+                        ? "25%"
+                        : step === 2
+                        ? "50%"
+                        : step === 3
+                        ? "75%"
+                        : "100%"
+                  }}
+                />
               </div>
             </div>
           </div>
-
-          <form id="CL-form" className="p-6 md:p-8" onSubmit={handleSubmit}>
+<form id="CL-form" className="p-6 md:p-8" onSubmit={handleSubmit}>
             {step===1 && (
               <div className="form-step active" id="step-1">
                 <h2 className="text-2xl font-bold text-gray-800 mb-6">Datos personales</h2>
@@ -333,3 +462,4 @@ export default function Solicitar() {
     </div>
   );
 }
+

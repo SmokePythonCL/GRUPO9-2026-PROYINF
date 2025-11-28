@@ -5,14 +5,15 @@ import { useState, useEffect } from "react";
 export default function ConfiguracionPage() {
   const [nombre, setNombre] = useState("");
   const [correo, setCorreo] = useState("");
+  const [telefono, setTelefono] = useState("");
 
-  // Cargar datos actuales desde localStorage
   useEffect(() => {
     const stored = localStorage.getItem("user");
     if (stored) {
       const u = JSON.parse(stored);
       setNombre(u.nombre || "");
       setCorreo(u.email || "");
+      setTelefono(u.telefono || "");
     }
   }, []);
 
@@ -24,7 +25,8 @@ export default function ConfiguracionPage() {
     try {
       const body = {
         nombre,
-        email: correo
+        email: correo,
+        telefono
       };
 
       const res = await fetch("http://localhost:4000/api/user/update", {
@@ -43,7 +45,7 @@ export default function ConfiguracionPage() {
         return;
       }
 
-      // Guardar datos actualizados
+      // Guardar en localStorage
       localStorage.setItem("user", JSON.stringify(updated));
 
       alert("Datos actualizados correctamente.");
@@ -76,6 +78,16 @@ export default function ConfiguracionPage() {
             className="w-full border p-2 rounded"
             value={correo}
             onChange={(e) => setCorreo(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label className="font-medium">Teléfono</label>
+          <input
+            type="text"
+            className="w-full border p-2 rounded"
+            value={telefono}
+            onChange={(e) => setTelefono(e.target.value)}
           />
         </div>
 
