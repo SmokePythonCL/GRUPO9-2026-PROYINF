@@ -28,14 +28,19 @@ export default function Login() {
     const form = new FormData(e.currentTarget);
     const email = form.get('email');
     const password = form.get('password');
+
     try {
-      const { token } = await login(email, password);
+      const { token, user } = await login(email, password);
+
       localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+
       router.push('/mi_cuenta');
     } catch (err) {
       alert('Credenciales inválidas');
     }
   }
+
 
   return (
     <div className="bg-gray-50 min-h-screen">
