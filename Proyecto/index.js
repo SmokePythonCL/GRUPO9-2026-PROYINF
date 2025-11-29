@@ -61,6 +61,25 @@ async function initSchema() {
   `);
 
   await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS telefono TEXT DEFAULT ''`);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS user_documents (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      doc_type TEXT NOT NULL,
+      file_path TEXT NOT NULL,
+      tipo TEXT,
+      created_at TIMESTAMP DEFAULT NOW()
+    );
+  `);
+
+  // Asegurar columnas si la tabla existía antigua
+  await pool.query(`ALTER TABLE user_documents ADD COLUMN IF NOT EXISTS tipo TEXT`);
+  await pool.query(`ALTER TABLE user_documents ADD COLUMN IF NOT EXISTS file_path TEXT`);
+  await pool.query(`ALTER TABLE user_documents ADD COLUMN IF NOT EXISTS doc_type TEXT`);
+  await pool.query(`ALTER TABLE user_documents ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW()`);
+  // Backfill doc_type desde tipo si está nulo
+  await pool.query(`UPDATE user_documents SET doc_type = tipo WHERE doc_type IS NULL AND tipo IS NOT NULL`);
 }
 
 initSchema().catch(e => console.error("Error creando tablas:", e));
@@ -240,6 +259,61 @@ app.post('/api/auth/register', async (req, res) => {
     res.status(201).json({ user, token });
   } catch (err) {
     console.error('REGISTER ERROR:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// -------------------------------------------------------------
+// Subida de documentos del usuario
+// -------------------------------------------------------------
+app.post('/api/user/documents', authMiddleware, upload.fields([
+  // Nombres usados por el frontend
+  { name: 'carnet_frontal', maxCount: 1 },
+  { name: 'carnet_trasera', maxCount: 1 },
+  { name: 'comprobante_domicilio', maxCount: 1 }
+]), async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const saved = [];
+
+    function saveDoc(fieldName, tipo) {
+      const f = (req.files && req.files[fieldName] && req.files[fieldName][0]) || null;
+      if (f) saved.push({ tipo, file_path: `/uploads/${path.basename(f.path)}` });
+    }
+
+    saveDoc('carnet_frontal', 'carnet_frontal');
+    saveDoc('carnet_trasera', 'carnet_trasera');
+    saveDoc('comprobante_domicilio', 'comprobante_domicilio');
+
+    if (saved.length === 0) {
+      return res.status(400).json({ error: 'No se enviaron archivos' });
+    }
+
+    for (const s of saved) {
+      await pool.query(
+        `INSERT INTO user_documents (user_id, doc_type, tipo, file_path) VALUES ($1,$2,$3,$4)`,
+        [userId, s.tipo, s.tipo, s.file_path]
+      );
+    }
+
+    res.status(201).json({ ok: true, documents: saved });
+  } catch (err) {
+    console.error('UPLOAD DOCS ERROR:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// Listar documentos del usuario
+app.get('/api/user/documents', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const q = await pool.query(
+      `SELECT id, tipo, file_path, created_at FROM user_documents WHERE user_id=$1 ORDER BY created_at DESC`,
+      [userId]
+    );
+    res.json(q.rows);
+  } catch (err) {
+    console.error('LIST DOCS ERROR:', err);
     res.status(500).json({ error: 'Error interno' });
   }
 });

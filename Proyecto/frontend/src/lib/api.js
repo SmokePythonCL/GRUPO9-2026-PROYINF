@@ -52,6 +52,12 @@ export async function uploadDocuments(formData) {
   return data;
 }
 
+export async function getUserDocuments() {
+  if (!BASE_URL) throw new Error('No API configured');
+  const { data } = await client.get('/api/user/documents');
+  return data;
+}
+
 export async function getLoanStatus(id) {
   if (!BASE_URL) throw new Error('No API configured');
   const { data } = await client.get(`/api/loans/${id}/status`);
