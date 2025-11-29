@@ -194,4 +194,54 @@ app.put('/api/user/update', authMiddleware, async (req, res) => {
   }
 });
 
+// -------------------------------------------------------------
+// Registro
+// -------------------------------------------------------------
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const {
+      nombre,
+      apellido_paterno,
+      apellido_materno,
+      nacimiento,
+      rut,
+      email,
+      password,
+      telefono
+    } = req.body;
+
+    // Validaciones básicas
+    if (!nombre || !apellido_paterno || !apellido_materno || !nacimiento || !rut || !email || !password) {
+      return res.status(400).json({ error: 'Faltan campos requeridos' });
+    }
+
+    // Sanitizar: no loggear contraseña
+    console.log('Registro intento:', { nombre, apellido_paterno, apellido_materno, nacimiento, rut, email, telefono: telefono || '' });
+
+    // Chequear duplicados por email y rut
+    const dup = await pool.query('SELECT id FROM users WHERE email=$1 OR rut=$2', [email, rut]);
+    if (dup.rows.length > 0) {
+      return res.status(409).json({ error: 'Email o RUT ya registrado' });
+    }
+
+    // Hash de contraseña
+    const password_hash = await bcrypt.hash(password, 10);
+
+    const q = await pool.query(
+      `INSERT INTO users (nombre, apellido_paterno, apellido_materno, nacimiento, rut, email, password_hash, telefono)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+       RETURNING id, nombre, apellido_paterno, apellido_materno, nacimiento, rut, email, telefono`,
+      [nombre, apellido_paterno, apellido_materno, nacimiento, rut, email, password_hash, telefono || '']
+    );
+
+    const user = q.rows[0];
+    const token = jwt.sign({ id: user.id, rut: user.rut }, JWT_SECRET, { expiresIn: '7d' });
+
+    res.status(201).json({ user, token });
+  } catch (err) {
+    console.error('REGISTER ERROR:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
 app.listen(port, () => console.log(`Backend en http://localhost:${port}`));
