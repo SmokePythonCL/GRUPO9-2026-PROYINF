@@ -18,6 +18,7 @@ Puede acceder a la Wiki mediante el siguiente [enlace](https://github.com/SmokeP
 
 * [Video presentación cliente](https://aula.usm.cl/mod/resource/view.php?id=6926137)
 * [Video prototipo 1](https://youtu.be/HApaXx7xNJU)
+* [Video final](https://www.youtube.com/watch?v=FpSYI8E6yGw)
 ## Aspectos técnicos relevantes
 - Contenedor: Docker
 - Front-End: React
