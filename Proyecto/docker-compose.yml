@@ -9,7 +9,7 @@ services:
       args:
         NEXT_PUBLIC_API_URL: "http://localhost:4000"
     ports:
-      - '5000:3000'
+      - '3000:3000'
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:4000
     restart: always
