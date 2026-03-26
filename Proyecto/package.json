@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "main": "index.js",
     "scripts": {
-        "start": "node index.js",
+        "start": "wait-port postgres_db:5432 && node index.js",
         "mock": "node mock-api.js"
     },
     "dependencies": {

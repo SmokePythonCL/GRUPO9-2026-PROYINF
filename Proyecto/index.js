@@ -11,12 +11,30 @@ const app = express();
 const port = 4000;
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret';
 
+app.use(cors({
+  origin: function (origin, callback) {
+    // Permitir solicitudes sin origen (como Postman o curl)
+    if (!origin) return callback(null, true);
+    
+    // Validar si el origen es localhost o 127.0.0.1 en cualquier puerto
+    const allowedOrigins = [/^http:\/\/localhost(:\d+)?$/, /^http:\/\/127\.0\.0\.1(:\d+)?$/];
+    const isAllowed = allowedOrigins.some((regex) => regex.test(origin));
+
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      console.log("CORS bloqueado para el origen:", origin);
+      callback(new Error('No permitido por CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// 2. Los demás middlewares van después
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors({
-  origin: [/^http:\/\/localhost:\d+$/],
-  credentials: true,
-}));
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -81,8 +99,6 @@ async function initSchema() {
   // Backfill doc_type desde tipo si está nulo
   await pool.query(`UPDATE user_documents SET doc_type = tipo WHERE doc_type IS NULL AND tipo IS NOT NULL`);
 }
-
-initSchema().catch(e => console.error("Error creando tablas:", e));
 
 
 // -------------------------------------------------------------
@@ -318,4 +334,37 @@ app.get('/api/user/documents', authMiddleware, async (req, res) => {
   }
 });
 
-app.listen(port, () => console.log(`Backend en http://localhost:${port}`));
+// -------------------------------------------------------------
+// Función para iniciar el servidor con reintentos para la DB
+// -------------------------------------------------------------
+async function startServer() {
+  let retries = 5;
+  while (retries) {
+    try {
+      // Intenta inicializar el esquema
+      await initSchema();
+      console.log("✅ Base de datos conectada y tablas listas.");
+      
+      // Solo inicia el servidor Express si la DB está lista
+      app.listen(port, () => {
+        console.log(`🚀 Backend corriendo en http://localhost:${port}`);
+      });
+      return; // Éxito, salimos de la función
+    } catch (err) {
+      retries -= 1;
+      console.error(`❌ Error conectando a la DB. Reintentos restantes: ${retries}`);
+      console.error(err.message);
+      
+      if (retries === 0) {
+        console.error("No se pudo conectar a la base de datos después de varios intentos. Saliendo...");
+        process.exit(1);
+      }
+      
+      // Espera 5 segundos antes de reintentar
+      await new Promise(res => setTimeout(res, 5000));
+    }
+  }
+}
+
+// Ejecutar la función de inicio
+startServer();
