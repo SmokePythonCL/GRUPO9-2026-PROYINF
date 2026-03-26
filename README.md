@@ -14,14 +14,6 @@ Este es el repositorio del *Grupo 9*, cuyos integrantes son:
 
 **Profesor**: Ricardo Antonio Salas Letelier
 
-## Autoevaluación SEMAT
-text
-## 3 Alphas prioritarias
-text
-## Análisis HU's
-
-<br>
-
 ---
 
 # Información proyecto 2025-2
