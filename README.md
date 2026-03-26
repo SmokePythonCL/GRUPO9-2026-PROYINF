@@ -20,10 +20,6 @@ text
 text
 ## Análisis HU's
 
-| ID | Requisito (HU) | Estado Actual | Evidencia | Comentario |
-| :--- | :--- | :--- | :--- | :--- |
-|text  | text | text  |text | text |
-
 <br>
 
 ---
