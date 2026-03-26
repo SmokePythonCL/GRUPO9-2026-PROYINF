@@ -4,7 +4,7 @@ Este es el repositorio del *Grupo 9*, cuyos integrantes son:
 
 * Alejandro Ismael Ortiz Tapia - 202373572-8
 * Kran Antonio Olivares Rojas - 202373542-6
-* Martina Name Madrid Surname - ROL
+* Martina Name Madrid Russell - ROL
 * Matias Ignacio Romo Vargas - 202373632-5
 * Vicente Andrés Jiménez Sepulveda - 202373523-k
 
