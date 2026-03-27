@@ -16,7 +16,7 @@ Este es el repositorio del *Grupo 9*, cuyos integrantes son:
 
 ---
 
-# Información proyecto 2025-2
+# Información proyecto 2025-2 (Proyecto del Grupo 11 en INF236)
 
 ## Proyecto Base
 Puede acceder al proyecto base escogido en el siguiente enlace:  [enlace](https://github.com/SmokePythonCL/GRUPO11-2025-PROYINF)
