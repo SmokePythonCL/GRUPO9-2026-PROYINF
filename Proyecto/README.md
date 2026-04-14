@@ -1,4 +1,4 @@
-# FlashLoan – Monorepo (Frontend + Mock API)
+# PrestamoCL – Monorepo (Frontend + Mock API)
 
 Este proyecto contiene:
 - Frontend en Next.js (carpeta `frontend/`), con migración de las páginas HTML a rutas de App Router.
