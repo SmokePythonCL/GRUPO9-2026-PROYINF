@@ -63,3 +63,15 @@ export async function getLoanStatus(id) {
   const { data } = await client.get(`/api/loans/${id}/status`);
   return data;
 }
+
+export async function updateUserProfile(payload) {
+  if (!BASE_URL) throw new Error('No API configured');
+  const { data } = await client.put('/api/user/update', payload);
+  return data;
+}
+
+export async function updateUserPaymentMethod(payload) {
+  if (!BASE_URL) throw new Error('No API configured');
+  const { data } = await client.put('/api/user/payment-method', payload);
+  return data;
+}

@@ -74,11 +74,19 @@ async function initSchema() {
       email TEXT UNIQUE NOT NULL,
       password_hash TEXT NOT NULL,
       telefono TEXT DEFAULT '',
+      direccion TEXT DEFAULT '',
+      card_last4 TEXT,
+      card_brand TEXT,
+      card_expiry TEXT,
       created_at TIMESTAMP DEFAULT NOW()
     );
   `);
 
   await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS telefono TEXT DEFAULT ''`);
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS direccion TEXT DEFAULT ''`);
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS card_last4 TEXT`);
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS card_brand TEXT`);
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS card_expiry TEXT`);
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS user_documents (
@@ -117,6 +125,54 @@ function authMiddleware(req, res, next) {
   }
 }
 
+function mapUserResponse(row) {
+  if (!row) return row;
+
+  return {
+    id: row.id,
+    nombre: row.nombre,
+    apellido_paterno: row.apellido_paterno,
+    apellido_materno: row.apellido_materno,
+    nacimiento: row.nacimiento,
+    rut: row.rut,
+    email: row.email,
+    telefono: row.telefono,
+    direccion: row.direccion,
+    paymentMethod: row.card_last4
+      ? {
+          last4: row.card_last4,
+          brand: row.card_brand || undefined,
+          expiry: row.card_expiry || undefined
+        }
+      : null
+  };
+}
+
+function detectCardBrand(cardNumber) {
+  if (/^4/.test(cardNumber)) return 'visa';
+  if (/^(5[1-5]|2[2-7])/.test(cardNumber)) return 'mastercard';
+  if (/^3[47]/.test(cardNumber)) return 'amex';
+  if (/^6(?:011|5)/.test(cardNumber)) return 'discover';
+  return 'unknown';
+}
+
+function isLuhnValid(cardNumber) {
+  let sum = 0;
+  let shouldDouble = false;
+
+  for (let i = cardNumber.length - 1; i >= 0; i -= 1) {
+    let digit = Number(cardNumber[i]);
+    if (shouldDouble) {
+      digit *= 2;
+      if (digit > 9) digit -= 9;
+    }
+    sum += digit;
+    shouldDouble = !shouldDouble;
+  }
+
+  return sum % 10 === 0;
+}
+
 // -------------------------------------------------------------
 // Login
 // -------------------------------------------------------------
@@ -134,16 +190,7 @@ app.post('/api/auth/login', async (req, res) => {
     const token = jwt.sign({ id: user.id, rut: user.rut }, JWT_SECRET, { expiresIn: '7d' });
 
     res.json({
-      user: {
-        id: user.id,
-        nombre: user.nombre,
-        apellido_paterno: user.apellido_paterno,
-        apellido_materno: user.apellido_materno,
-        nacimiento: user.nacimiento,
-        rut: user.rut,
-        email: user.email,
-        telefono: user.telefono
-      },
+      user: mapUserResponse(user),
       token
     });
   } catch (err) {
@@ -156,10 +203,10 @@ app.post('/api/auth/login', async (req, res) => {
 // -------------------------------------------------------------
 app.get('/api/user', authMiddleware, async (req, res) => {
   const q = await pool.query(
-    "SELECT id, nombre, apellido_paterno, apellido_materno, nacimiento, rut, email, telefono FROM users WHERE id=$1",
+    "SELECT id, nombre, apellido_paterno, apellido_materno, nacimiento, rut, email, telefono, direccion, card_last4, card_brand, card_expiry FROM users WHERE id=$1",
     [req.user.id]
   );
-  res.json(q.rows[0]);
+  res.json(mapUserResponse(q.rows[0]));
 });
 
 // -------------------------------------------------------------
@@ -175,7 +222,8 @@ app.put('/api/user/update', authMiddleware, async (req, res) => {
       apellido_materno,
       nacimiento,
       email,
-      telefono
+      telefono,
+      direccion
     } = req.body;
 
     const fields = [];
@@ -194,6 +242,7 @@ app.put('/api/user/update', authMiddleware, async (req, res) => {
     addField("nacimiento", nacimiento);
     addField("email", email);
     addField("telefono", telefono);
+    addField("direccion", direccion);
 
     if (fields.length === 0)
       return res.status(400).json({ error: "No hay datos para actualizar." });
@@ -214,18 +263,72 @@ app.put('/api/user/update', authMiddleware, async (req, res) => {
       UPDATE users
       SET ${fields.join(", ")}
       WHERE id = $${fields.length + 1}
-      RETURNING id, nombre, apellido_paterno, apellido_materno, nacimiento, rut, email, telefono
+      RETURNING id, nombre, apellido_paterno, apellido_materno, nacimiento, rut, email, telefono, direccion, card_last4, card_brand, card_expiry
     `;
 
     values.push(userId);
 
     const updated = await pool.query(query, values);
 
-    res.json(updated.rows[0]);
+    res.json(mapUserResponse(updated.rows[0]));
 
   } catch (err) {
     console.error("UPDATE ERROR:", err);
     res.status(500).json({ error: "Error interno" });
+  }
+});
+
+// -------------------------------------------------------------
+// Actualizar tarjeta del usuario (solo metadatos no sensibles)
+// -------------------------------------------------------------
+app.put('/api/user/payment-method', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { cardNumber, expiry, cvv } = req.body || {};
+
+    const digits = String(cardNumber || '').replace(/\D/g, '');
+    const safeExpiry = String(expiry || '').trim();
+    const safeCvv = String(cvv || '').replace(/\D/g, '');
+
+    if (digits.length < 12 || digits.length > 19 || !isLuhnValid(digits)) {
+      return res.status(400).json({ error: 'Número de tarjeta inválido.' });
+    }
+
+    if (!/^\d{2}\/\d{2}$/.test(safeExpiry)) {
+      return res.status(400).json({ error: 'Fecha de expiración inválida. Usa MM/AA.' });
+    }
+
+    const month = Number(safeExpiry.slice(0, 2));
+    if (month < 1 || month > 12) {
+      return res.status(400).json({ error: 'Mes de expiración inválido.' });
+    }
+
+    if (safeCvv.length < 3 || safeCvv.length > 4) {
+      return res.status(400).json({ error: 'CVV inválido.' });
+    }
+
+    const last4 = digits.slice(-4);
+    const brand = detectCardBrand(digits);
+
+    const q = await pool.query(
+      `UPDATE users
+       SET card_last4=$1, card_brand=$2, card_expiry=$3
+       WHERE id=$4
+       RETURNING card_last4, card_brand, card_expiry`,
+      [last4, brand, safeExpiry, userId]
+    );
+
+    res.json({
+      ok: true,
+      paymentMethod: {
+        last4: q.rows[0].card_last4,
+        brand: q.rows[0].card_brand,
+        expiry: q.rows[0].card_expiry
+      }
+    });
+  } catch (err) {
+    console.error('UPDATE PAYMENT METHOD ERROR:', err);
+    res.status(500).json({ error: 'Error interno' });
   }
 });
 
@@ -242,16 +345,17 @@ app.post('/api/auth/register', async (req, res) => {
       rut,
       email,
       password,
-      telefono
+      telefono,
+      direccion
     } = req.body;
 
     // Validaciones básicas
-    if (!nombre || !apellido_paterno || !apellido_materno || !nacimiento || !rut || !email || !password) {
+    if (!nombre || !apellido_paterno || !apellido_materno || !nacimiento || !rut || !email || !password || !telefono || !direccion) {
       return res.status(400).json({ error: 'Faltan campos requeridos' });
     }
 
     // Sanitizar: no loggear contraseña
-    console.log('Registro intento:', { nombre, apellido_paterno, apellido_materno, nacimiento, rut, email, telefono: telefono || '' });
+    console.log('Registro intento:', { nombre, apellido_paterno, apellido_materno, nacimiento, rut, email, telefono, direccion });
 
     // Chequear duplicados por email y rut
     const dup = await pool.query('SELECT id FROM users WHERE email=$1 OR rut=$2', [email, rut]);
@@ -263,16 +367,16 @@ app.post('/api/auth/register', async (req, res) => {
     const password_hash = await bcrypt.hash(password, 10);
 
     const q = await pool.query(
-      `INSERT INTO users (nombre, apellido_paterno, apellido_materno, nacimiento, rut, email, password_hash, telefono)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
-       RETURNING id, nombre, apellido_paterno, apellido_materno, nacimiento, rut, email, telefono`,
-      [nombre, apellido_paterno, apellido_materno, nacimiento, rut, email, password_hash, telefono || '']
+      `INSERT INTO users (nombre, apellido_paterno, apellido_materno, nacimiento, rut, email, password_hash, telefono, direccion)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+       RETURNING id, nombre, apellido_paterno, apellido_materno, nacimiento, rut, email, telefono, direccion, card_last4, card_brand, card_expiry`,
+      [nombre, apellido_paterno, apellido_materno, nacimiento, rut, email, password_hash, telefono, direccion]
     );
 
     const user = q.rows[0];
     const token = jwt.sign({ id: user.id, rut: user.rut }, JWT_SECRET, { expiresIn: '7d' });
 
-    res.status(201).json({ user, token });
+    res.status(201).json({ user: mapUserResponse(user), token });
   } catch (err) {
     console.error('REGISTER ERROR:', err);
     res.status(500).json({ error: 'Error interno' });

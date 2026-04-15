@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { getUser, updateUserPaymentMethod } from "@/lib/api";
 
 export default function CambiarTarjetaPage() {
   const [user, setUser] = useState(null);
@@ -10,17 +11,28 @@ export default function CambiarTarjetaPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem("user");
-    if (stored) {
-      const u = JSON.parse(stored);
-      setUser(u);
+    (async () => {
+      try {
+        const profile = await getUser();
+        setUser(profile);
+        localStorage.setItem("user", JSON.stringify(profile));
 
-      // Si el usuario tiene tarjeta guardada, mostramos máscara y últimos 4
-      if (u.paymentMethod?.last4) {
-        setNumero(`**** **** **** ${u.paymentMethod.last4}`);
-        setFecha(u.paymentMethod.expiry || "");
+        if (profile.paymentMethod?.last4) {
+          setNumero(`**** **** **** ${profile.paymentMethod.last4}`);
+          setFecha(profile.paymentMethod.expiry || "");
+        }
+      } catch {
+        const stored = localStorage.getItem("user");
+        if (stored) {
+          const u = JSON.parse(stored);
+          setUser(u);
+          if (u.paymentMethod?.last4) {
+            setNumero(`**** **** **** ${u.paymentMethod.last4}`);
+            setFecha(u.paymentMethod.expiry || "");
+          }
+        }
       }
-    }
+    })();
   }, []);
 
   const validateNumberInput = (raw) => {
@@ -40,6 +52,7 @@ export default function CambiarTarjetaPage() {
 
     // validaciones mínimas
     const digits = numero.replace(/\D/g, "");
+    if (numero.includes("*")) return alert("Ingresa manualmente la nueva tarjeta para actualizarla.");
     if (digits.length < 12) return alert("Ingresa un número de tarjeta válido.");
     if (!fecha || !/^\d{2}\/\d{2}$/.test(fecha)) return alert("Fecha debe estar en formato MM/AA.");
     if (cvv.length < 3) return alert("CVV inválido.");
@@ -47,27 +60,12 @@ export default function CambiarTarjetaPage() {
     setLoading(true);
 
     try {
-      // Ajusta la URL al endpoint real de tu backend (o usa NEXT_PUBLIC_API_URL)
-      const res = await fetch("/api/usuario/tarjeta", {
-        method: "PUT",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          cardNumber: digits,
-          expiry: fecha,
-          cvv,
-        }),
+      const data = await updateUserPaymentMethod({
+        cardNumber: digits,
+        expiry: fecha,
+        cvv,
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        alert(data.message || "Error actualizando la tarjeta.");
-        setLoading(false);
-        return;
-      }
-
-      // Ejemplo: backend devuelve { ok: true, paymentMethod: { last4: '1234', expiry: 'MM/AA', brand: 'visa' } }
       const paymentMethod = data.paymentMethod || {
         last4: digits.slice(-4),
         expiry: fecha,
@@ -87,8 +85,7 @@ export default function CambiarTarjetaPage() {
       setCvv("");
       alert("Tarjeta actualizada correctamente.");
     } catch (err) {
-      console.error(err);
-      alert("Error de conexión al actualizar la tarjeta.");
+      alert(err?.response?.data?.error || "Error de conexión al actualizar la tarjeta.");
     } finally {
       setLoading(false);
     }

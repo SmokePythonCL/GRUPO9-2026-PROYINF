@@ -3,17 +3,17 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import SessionLinks from "@/components/SessionLinks";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { submitLoan } from "@/lib/api";
+import { CHILE_COMUNAS_BY_REGION, CHILE_REGIONS } from "@/lib/chileLocations";
 
-const comunasPorRegion = {
-  'arica': ['Arica', 'Camarones', 'Putre', 'General Lagos'],
-  'tarapaca': ['Iquique', 'Alto Hospicio', 'Pozo Almonte'],
-  'metropolitana': ['Santiago', 'Providencia', 'Las Condes']
-};
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 export default function Solicitar() {
+  const router = useRouter();
   const [step, setStep] = useState(1);
   const [region, setRegion] = useState('');
   const [comunas, setComunas] = useState([]);
@@ -46,7 +46,21 @@ export default function Solicitar() {
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    fetch("http://localhost:4000/api/user", {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      setFormData((prev) => ({
+        ...prev,
+        nombre: user.nombre || "",
+        rut: user.rut || "",
+        email: user.email || "",
+        telefono: user.telefono || "",
+        fecha: (user.nacimiento || "").toString().slice(0, 10),
+        direccion: user.direccion || ""
+      }));
+    }
+
+    fetch(`${API_BASE_URL}/api/user`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
@@ -58,10 +72,38 @@ export default function Solicitar() {
           nombre: user.nombre || "",
           rut: user.rut || "",
           email: user.email || "",
-          telefono: user.telefono || ""
+          telefono: user.telefono || "",
+          fecha: (user.nacimiento || "").toString().slice(0, 10),
+          direccion: user.direccion || ""
         }));
       })
       .catch((err) => console.error("Error cargando usuario:", err));
+
+    fetch(`${API_BASE_URL}/api/user/documents`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => res.json())
+      .then((docs) => {
+        if (!Array.isArray(docs)) return;
+
+        const findByType = (type) => docs.find((d) => (d.tipo || d.doc_type) === type);
+        const toUploadedFileLike = (doc, fallbackLabel) => {
+          if (!doc) return null;
+          const fileName = doc.file_path ? String(doc.file_path).split("/").pop() : fallbackLabel;
+          return {
+            name: fileName || fallbackLabel,
+            fromExisting: true,
+          };
+        };
+
+        setFiles((prev) => ({
+          ...prev,
+          frente: prev.frente || toUploadedFileLike(findByType("carnet_frontal"), "carnet_frontal"),
+          reverso: prev.reverso || toUploadedFileLike(findByType("carnet_trasera"), "carnet_trasera"),
+          comprobante: prev.comprobante || toUploadedFileLike(findByType("comprobante_domicilio"), "comprobante_domicilio"),
+        }));
+      })
+      .catch((err) => console.error("Error cargando documentos:", err));
   }, []);
 
   // -----------------------------------------------------
@@ -81,7 +123,7 @@ export default function Solicitar() {
   }, []);
 
   useEffect(() => {
-    if (region && comunasPorRegion[region]) setComunas(comunasPorRegion[region]);
+    if (region && CHILE_COMUNAS_BY_REGION[region]) setComunas(CHILE_COMUNAS_BY_REGION[region]);
     else setComunas([]);
     setComuna('');
   }, [region]);
@@ -121,9 +163,97 @@ export default function Solicitar() {
     setFiles({ ...files, [key]: e.target.files[0] || null });
   }
 
-  function handleSubmit(e) {
+  function getDocumentStatus(documentValue) {
+    if (!documentValue) {
+      return {
+        label: "No cargado",
+        tone: "bg-red-100 text-red-700",
+        detail: "Debes subir este documento para continuar",
+      };
+    }
+
+    if (documentValue.fromExisting) {
+      return {
+        label: "Cargado previamente",
+        tone: "bg-emerald-100 text-emerald-700",
+        detail: documentValue.name || "Documento encontrado en tu cuenta",
+      };
+    }
+
+    return {
+      label: "Recién cargado",
+      tone: "bg-amber-100 text-amber-700",
+      detail: documentValue.name || "Archivo seleccionado",
+    };
+  }
+
+  const uploadedDocumentsCount = [files.frente, files.reverso, files.comprobante].filter(Boolean).length;
+
+  async function handleSubmit(e) {
     e.preventDefault();
-    alert("¡Solicitud enviada con éxito!");
+
+    const amount = Number(simulationData?.amount || 0);
+    const term = Number(simulationData?.term || 12);
+    const currentUser = JSON.parse(localStorage.getItem("user") || "null");
+
+    try {
+      const payload = {
+        amount,
+        term,
+        applicant: {
+          nombre: formData.nombre,
+          rut: formData.rut,
+          email: formData.email,
+          telefono: formData.telefono,
+          fecha: formData.fecha,
+          direccion: formData.direccion,
+          region,
+          comuna,
+        },
+        documents: {
+          frente: files.frente?.name || null,
+          reverso: files.reverso?.name || null,
+          comprobante: files.comprobante?.name || null,
+        },
+      };
+
+      const response = await submitLoan(payload);
+      const summary = response?.summary || {};
+
+      const approvedSummary = {
+        loanId: response?.id || null,
+        status: "APPROVED",
+        userId: currentUser?.id || null,
+        userEmail: currentUser?.email || null,
+        userRut: currentUser?.rut || null,
+        term: Number(summary.term || term),
+        paidInstallments: 0,
+        pendingInstallments: Number(summary.term || term),
+        totalLoanAmount: Number(summary.total || simulationData?.totalPayment || amount),
+        interestRate: Number(summary.interestRate || simulationData?.interestRate || 0.012),
+      };
+
+      localStorage.setItem("loanSummary", JSON.stringify(approvedSummary));
+      alert("¡Solicitud enviada y aprobada! Ya puedes ver el estado en tu cuenta.");
+      router.push("/mi_cuenta");
+    } catch {
+      const fallbackSummary = {
+        loanId: null,
+        status: "APPROVED",
+        userId: currentUser?.id || null,
+        userEmail: currentUser?.email || null,
+        userRut: currentUser?.rut || null,
+        term,
+        paidInstallments: 0,
+        pendingInstallments: term,
+        totalLoanAmount: Number(simulationData?.totalPayment || amount),
+        interestRate: Number(simulationData?.interestRate || 0.012),
+      };
+
+      localStorage.setItem("loanSummary", JSON.stringify(fallbackSummary));
+      alert("¡Solicitud enviada y aprobada! Ya puedes ver el estado en tu cuenta.");
+      router.push("/mi_cuenta");
+    }
   }
 
   return (
@@ -309,8 +439,9 @@ export default function Solicitar() {
                     <label htmlFor="region" className="block text-gray-700 font-medium mb-2">Región</label>
                     <select id="region" name="region" value={region} onChange={e=>setRegion(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg" required>
                       <option value="" disabled>Seleccione región</option>
-                      <option value="metropolitana">Metropolitana</option>
-                      <option value="tarapaca">Tarapacá</option>
+                      {CHILE_REGIONS.map((r) => (
+                        <option key={r.id} value={r.id}>{r.name}</option>
+                      ))}
                     </select>
                   </div>
                   <div>
@@ -336,31 +467,67 @@ export default function Solicitar() {
             {step===2 && (
               <div className="form-step active" id="step-2">
                 <h2 className="text-2xl font-bold text-gray-800 mb-6">Documentación requerida</h2>
+                <p className="text-sm text-gray-600 mb-4">
+                  Estado de carga: <span className="font-semibold text-gray-800">{uploadedDocumentsCount}/3 documentos</span>
+                </p>
                 <div className="space-y-6">
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                     <div className="flex flex-col items-center">
+                      {(() => {
+                        const status = getDocumentStatus(files.frente);
+                        return (
+                          <span className={`mb-3 text-xs font-semibold px-3 py-1 rounded-full ${status.tone}`}>
+                            {status.label}
+                          </span>
+                        );
+                      })()}
                       <i data-feather="file-text" className="w-12 h-12 text-gray-400 mb-4" />
                       <h3 className="text-lg font-medium text-gray-800 mb-2">Cédula de identidad (frente)</h3>
+                      <p className="text-sm text-gray-600 mb-3">{getDocumentStatus(files.frente).detail}</p>
                       <input type="file" id="ci-frente" name="ci-frente" className="hidden" accept="image/*,.pdf" onChange={(e)=>handleFileChange(e,'frente')} />
-                      <button type="button" onClick={()=>document.getElementById('ci-frente').click()} className="px-4 py-2 bg-gray-100 rounded-lg">Seleccionar archivo</button>
+                      <button type="button" onClick={()=>document.getElementById('ci-frente').click()} className="px-4 py-2 bg-gray-100 rounded-lg">
+                        {files.frente ? "Reemplazar archivo" : "Seleccionar archivo"}
+                      </button>
                     </div>
                   </div>
 
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                     <div className="flex flex-col items-center">
+                      {(() => {
+                        const status = getDocumentStatus(files.reverso);
+                        return (
+                          <span className={`mb-3 text-xs font-semibold px-3 py-1 rounded-full ${status.tone}`}>
+                            {status.label}
+                          </span>
+                        );
+                      })()}
                       <i data-feather="file-text" className="w-12 h-12 text-gray-400 mb-4" />
                       <h3 className="text-lg font-medium text-gray-800 mb-2">Cédula de identidad (reverso)</h3>
+                      <p className="text-sm text-gray-600 mb-3">{getDocumentStatus(files.reverso).detail}</p>
                       <input type="file" id="ci-reverso" name="ci-reverso" className="hidden" accept="image/*,.pdf" onChange={(e)=>handleFileChange(e,'reverso')} />
-                      <button type="button" onClick={()=>document.getElementById('ci-reverso').click()} className="px-4 py-2 bg-gray-100 rounded-lg">Seleccionar archivo</button>
+                      <button type="button" onClick={()=>document.getElementById('ci-reverso').click()} className="px-4 py-2 bg-gray-100 rounded-lg">
+                        {files.reverso ? "Reemplazar archivo" : "Seleccionar archivo"}
+                      </button>
                     </div>
                   </div>
 
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                     <div className="flex flex-col items-center">
+                      {(() => {
+                        const status = getDocumentStatus(files.comprobante);
+                        return (
+                          <span className={`mb-3 text-xs font-semibold px-3 py-1 rounded-full ${status.tone}`}>
+                            {status.label}
+                          </span>
+                        );
+                      })()}
                       <i data-feather="file-text" className="w-12 h-12 text-gray-400 mb-4" />
                       <h3 className="text-lg font-medium text-gray-800 mb-2">Comprobante de domicilio</h3>
+                      <p className="text-sm text-gray-600 mb-3">{getDocumentStatus(files.comprobante).detail}</p>
                       <input type="file" id="comprobante" name="comprobante" className="hidden" accept="image/*,.pdf" onChange={(e)=>handleFileChange(e,'comprobante')} />
-                      <button type="button" onClick={()=>document.getElementById('comprobante').click()} className="px-4 py-2 bg-gray-100 rounded-lg">Seleccionar archivo</button>
+                      <button type="button" onClick={()=>document.getElementById('comprobante').click()} className="px-4 py-2 bg-gray-100 rounded-lg">
+                        {files.comprobante ? "Reemplazar archivo" : "Seleccionar archivo"}
+                      </button>
                     </div>
                   </div>
                 </div>

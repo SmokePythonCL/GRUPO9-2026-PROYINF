@@ -10,8 +10,15 @@ let loans = {};
 let users = {
   'demo@flashloan.cl': {
     id: 'u_1',
-    name: 'Demo User',
-    email: 'demo@flashloan.cl'
+    nombre: 'Demo',
+    apellido_paterno: 'User',
+    apellido_materno: '',
+    nacimiento: '1998-01-01',
+    rut: '11111111-1',
+    email: 'demo@flashloan.cl',
+    telefono: '',
+    direccion: '',
+    paymentMethod: null
   }
 };
 
@@ -36,9 +43,59 @@ app.get('/api/health', (req, res) => res.json({ ok: true }));
 // Auth (mock)
 app.post('/api/auth/login', (req, res) => {
   const { email } = req.body || {};
-  const user = users[email] || { id: 'u_anon', name: 'Invitado', email };
+  const user = users[email] || {
+    id: 'u_anon',
+    nombre: 'Invitado',
+    apellido_paterno: '',
+    apellido_materno: '',
+    nacimiento: '2000-01-01',
+    rut: '00000000-0',
+    email,
+    telefono: '',
+    direccion: '',
+    paymentMethod: null
+  };
   const token = 'mock-token-' + Math.random().toString(36).slice(2);
   return res.json({ token, user });
+});
+
+app.post('/api/auth/register', (req, res) => {
+  const {
+    nombre,
+    apellido_paterno,
+    apellido_materno,
+    nacimiento,
+    rut,
+    email,
+    password,
+    telefono,
+    direccion,
+  } = req.body || {};
+
+  if (!nombre || !apellido_paterno || !apellido_materno || !nacimiento || !rut || !email || !password || !telefono || !direccion) {
+    return res.status(400).json({ error: 'Faltan campos requeridos' });
+  }
+
+  if (users[email]) {
+    return res.status(409).json({ error: 'Email ya registrado' });
+  }
+
+  const user = {
+    id: 'u_' + Math.random().toString(36).slice(2, 8),
+    nombre,
+    apellido_paterno,
+    apellido_materno,
+    nacimiento,
+    rut,
+    email,
+    telefono,
+    direccion,
+    paymentMethod: null,
+  };
+
+  users[email] = user;
+  const token = 'mock-token-' + Math.random().toString(36).slice(2);
+  return res.status(201).json({ user, token });
 });
 
 // Loans: simulate
@@ -83,6 +140,33 @@ app.get('/api/loans/:id/status', (req, res) => {
 // User (mock)
 app.get('/api/user', (req, res) => {
   res.json(users['demo@flashloan.cl']);
+});
+
+app.put('/api/user/update', (req, res) => {
+  const current = users['demo@flashloan.cl'];
+  const next = { ...current, ...(req.body || {}) };
+  users['demo@flashloan.cl'] = next;
+  res.json(next);
+});
+
+app.put('/api/user/payment-method', (req, res) => {
+  const { cardNumber, expiry } = req.body || {};
+  const digits = String(cardNumber || '').replace(/\D/g, '');
+  if (digits.length < 12) return res.status(400).json({ error: 'Número de tarjeta inválido.' });
+  if (!/^\d{2}\/\d{2}$/.test(String(expiry || ''))) return res.status(400).json({ error: 'Fecha inválida.' });
+
+  const paymentMethod = {
+    last4: digits.slice(-4),
+    expiry,
+    brand: /^4/.test(digits) ? 'visa' : 'unknown'
+  };
+
+  users['demo@flashloan.cl'] = {
+    ...users['demo@flashloan.cl'],
+    paymentMethod
+  };
+
+  res.json({ ok: true, paymentMethod });
 });
 
 const PORT = process.env.PORT || 4000;

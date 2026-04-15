@@ -1,17 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import SessionLinks from "@/components/SessionLinks";
 
 export default function Header({ active = "" }) {
-  const [logged, setLogged] = useState(false);
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    setLogged(!!token);
-  }, []);
-
   return (
     <header className="bg-white bg-opacity-90 shadow-sm">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
@@ -56,7 +48,7 @@ export default function Header({ active = "" }) {
 
           {/* 🔥 ESTE ES EL CAMBIO IMPORTANTE */}
           <Link
-            href={logged ? "/mi_cuenta/simuladorSesion" : "/solicitar"}
+            href="/simular"
             className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2 rounded-lg font-medium transition duration-300 shadow-md"
           >
             Solicitar préstamo

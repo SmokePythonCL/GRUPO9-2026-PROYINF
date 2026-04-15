@@ -16,6 +16,20 @@ export default function PrestamoAceptado() {
     due.setDate(today.getDate() + 30);
     const options = { day: 'numeric', month: 'long', year: 'numeric' };
     setDueDate(due.toLocaleDateString('es-ES', options));
+
+    const storedSimulation = localStorage.getItem("currentSimulation");
+    if (storedSimulation) {
+      const simulation = JSON.parse(storedSimulation);
+      const term = Number(simulation.term || 12);
+      const summary = {
+        term,
+        paidInstallments: 0,
+        pendingInstallments: term,
+        totalLoanAmount: Number(simulation.totalPayment || simulation.amount || 0),
+        interestRate: Number(simulation.interestRate || 0.012),
+      };
+      localStorage.setItem("loanSummary", JSON.stringify(summary));
+    }
   }, []);
 
   function handleBankSubmit(e) {

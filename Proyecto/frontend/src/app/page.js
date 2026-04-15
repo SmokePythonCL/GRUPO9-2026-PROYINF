@@ -99,7 +99,7 @@ export default function Home() {
             </p>
 
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-              <Link href="/solicitar">
+              <Link href="/simular">
                 <button className="bg-amber-500 hover:bg-amber-600 text-white px-8 py-4 rounded-lg font-bold transition duration-300 shadow-lg flex items-center justify-center">
                   <i data-feather="zap" className="mr-2" /> Solicitar ahora
                 </button>

@@ -26,6 +26,8 @@ export default function Registro() {
       rut: form.get('rut'),
       password: form.get('password'),
       email: form.get('email'),
+      telefono: form.get('telefono'),
+      direccion: form.get('direccion'),
     };
     try {
       const { token } = await register(payload);
@@ -73,6 +75,14 @@ export default function Registro() {
                 <div className="mb-4">
                   <label className="block text-gray-700 font-medium mb-2">Correo</label>
                   <input type="email" name="email" className="w-full px-4 py-3 border border-gray-300 rounded-lg" required />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-gray-700 font-medium mb-2">Teléfono</label>
+                  <input type="tel" name="telefono" className="w-full px-4 py-3 border border-gray-300 rounded-lg" placeholder="+56 9 1234 5678" required />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-gray-700 font-medium mb-2">Dirección</label>
+                  <input type="text" name="direccion" className="w-full px-4 py-3 border border-gray-300 rounded-lg" placeholder="Av. Principal 123" required />
                 </div>
                 <div className="mb-6">
                   <label className="block text-gray-700 font-medium mb-2">Contraseña</label>

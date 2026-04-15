@@ -33,8 +33,13 @@ export default function MiCuentaLayout({ children }) {
         localStorage.setItem("user", JSON.stringify(userData));
       } catch (err) {
         console.error("Error cargando perfil:", err);
-        // Si el token falló o no hay sesión, redirigir al login
-        router.push("/login");
+        // Si el token falló o no hay sesión, limpiar estado local y redirigir.
+        try {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+        } catch {}
+        setUser(null);
+        router.replace("/login");
       } finally {
         setLoading(false);
         setTimeout(() => {
@@ -52,17 +57,18 @@ export default function MiCuentaLayout({ children }) {
     </div>
   );
 
+  if (!user) return null;
+
   return (
     <div className="bg-gray-50 min-h-screen">
       <Header user={user} />
       <div className="container mx-auto px-4 py-8 flex gap-8">
         <aside className="w-64 bg-white rounded-lg shadow-sm p-6 h-fit">
-          <div className="flex items-center mb-8">
+          <div className="flex items-center mb-8 min-w-0">
             <img src={user.foto} className="w-12 h-12 rounded-full mr-4" alt="Avatar" />
-            <div>
+            <div className="min-w-0">
               {/* Mostramos el nombre completo procesado */}
-              <h3 className="font-bold text-gray-800 text-sm">{user.display_name}</h3>
-              <p className="text-xs text-gray-500">{user.email}</p>
+              <h3 className="font-bold text-gray-800 text-sm break-words">{user.display_name}</h3>
             </div>
           </div>
 
