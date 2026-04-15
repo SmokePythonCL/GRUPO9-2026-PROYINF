@@ -439,6 +439,41 @@ app.get('/api/user/documents', authMiddleware, async (req, res) => {
 });
 
 // -------------------------------------------------------------
+// Firma con Clave Unica (Mock)
+// -------------------------------------------------------------
+app.post('/api/loans/sign', (req, res) => {
+  setTimeout(() => {
+    res.json({ success: true, message: 'Firma realizada correctamente' });
+  }, 2000);
+});
+
+// -------------------------------------------------------------
+// Historial Crediticio (Mock)
+// -------------------------------------------------------------
+app.get('/api/user/credit-history', authMiddleware, (req, res) => {
+  const seed = (req.user.id * 97) % 600;
+  const score = 300 + seed;
+  let risk = 'ALTO';
+  let recommendedAmount = 1000000;
+  
+  if (score >= 700) {
+    risk = 'BAJO';
+    recommendedAmount = 7000000;
+  } else if (score >= 500) {
+    risk = 'MEDIO';
+    recommendedAmount = 3500000;
+  }
+  
+  res.json({
+    score,
+    risk,
+    recommendedAmount,
+    debts: (req.user.id * 12345) % 1000000,
+    reportDate: new Date().toISOString()
+  });
+});
+
+// -------------------------------------------------------------
 // Función para iniciar el servidor con reintentos para la DB
 // -------------------------------------------------------------
 async function startServer() {

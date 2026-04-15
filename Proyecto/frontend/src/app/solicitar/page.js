@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import SessionLinks from "@/components/SessionLinks";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { submitLoan } from "@/lib/api";
+import { submitLoan, signDocument } from "@/lib/api";
 import { CHILE_COMUNAS_BY_REGION, CHILE_REGIONS } from "@/lib/chileLocations";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
@@ -38,6 +38,7 @@ export default function Solicitar() {
   const [isValidStep1, setIsValidStep1] = useState(false);
   const [isValidStep2, setIsValidStep2] = useState(false);
   const [isValidStep3, setIsValidStep3] = useState(true);
+  const [isSigning, setIsSigning] = useState(false);
 
   // -----------------------------------------------------
   // 🔥 Cargar datos del usuario desde backend
@@ -188,6 +189,18 @@ export default function Solicitar() {
   }
 
   const uploadedDocumentsCount = [files.frente, files.reverso, files.comprobante].filter(Boolean).length;
+
+  async function handleSign() {
+    setIsSigning(true);
+    try {
+      await signDocument();
+      nextStep();
+    } catch (err) {
+      alert("Error al validar la firma, intenta nuevamente.");
+    } finally {
+      setIsSigning(false);
+    }
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -552,11 +565,33 @@ export default function Solicitar() {
                 </div>
 
                 <div className="flex justify-between mt-8">
-                  <button type="button" onClick={prevStep} className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg">Anterior</button>
-                  <button type="button" onClick={nextStep} className="px-6 py-3 bg-amber-500 text-white rounded-lg">Firmar con ClaveÚnica</button>
+                  <button type="button" onClick={prevStep} className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg" disabled={isSigning}>Anterior</button>
+                  <button type="button" onClick={handleSign} className="px-6 py-3 bg-amber-500 text-white rounded-lg flex items-center justify-center min-w-[200px]" disabled={isSigning}>
+                    {isSigning ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Realizando firma...
+                      </>
+                    ) : "Firmar con ClaveÚnica"}
+                  </button>
                 </div>
               </div>
             )}
+
+            {/* Popup structure overlay inside the same container ideally or absolute position layout */}
+            {isSigning && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                <div className="bg-white p-8 rounded-xl shadow-2xl flex flex-col items-center max-w-sm mx-4">
+                  <div className="w-16 h-16 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                  <h3 className="text-xl font-bold text-gray-800 mb-2">Realizando firma...</h3>
+                  <p className="text-gray-600 text-center text-sm">Por favor, espera mientras validamos tu identidad con Clave Única.</p>
+                </div>
+              </div>
+            )}
+
 
             {step===4 && (
               <div className="form-step active" id="step-4">

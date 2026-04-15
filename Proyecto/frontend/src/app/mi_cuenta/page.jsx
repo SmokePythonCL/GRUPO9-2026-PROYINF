@@ -3,16 +3,33 @@
 import { useEffect, useRef, useState } from "react";
 import Chart from "chart.js/auto";
 import feather from "feather-icons";
-import { getUser, getUserDocuments } from "@/lib/api";
+import { getUser, getUserDocuments, getUserCreditHistory } from "@/lib/api";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function MiCuentaPage() {
   const [docs, setDocs] = useState([]);
   const [profile, setProfile] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState(null);
   const [loanSummary, setLoanSummary] = useState(null);
+  const [creditHistory, setCreditHistory] = useState(null);
   const paymentChartRef = useRef(null);
   const required = ["carnet_frontal", "carnet_trasera", "comprobante_domicilio"];
+  const router = useRouter();
+
+  const handleAcceptProposal = (amount, term, rate) => {
+    const monthly = (amount * rate) / (1 - Math.pow(1 + rate, -term));
+    const total = monthly * term;
+    const simulation = {
+      amount,
+      term,
+      monthlyPayment: Math.round(monthly),
+      totalPayment: Math.round(total),
+      interestRate: rate
+    };
+    localStorage.setItem('currentSimulation', JSON.stringify(simulation));
+    router.push('/solicitar');
+  };
 
   const formatCurrency = (value) =>
     new Intl.NumberFormat("es-CL", {
@@ -125,8 +142,23 @@ export default function MiCuentaPage() {
             setLoanSummary(null);
           }
         }
+        
+        // Fetch credit history if no active loan is shown
+        if (!rawLoan || !loanSummary) {
+          try {
+            const ch = await getUserCreditHistory();
+            setCreditHistory(ch);
+          } catch (e) {}  
+        }
+
       } catch {
         // Si falla perfil, mantenemos la info del localStorage
+        if (!loanSummary) {
+          try {
+            const ch = await getUserCreditHistory();
+            setCreditHistory(ch);
+          } catch (e) {}
+        }
       }
     })();
 
@@ -229,11 +261,39 @@ export default function MiCuentaPage() {
           ) : (
             <div className="rounded-lg border border-amber-200 bg-amber-50 p-5">
               <p className="text-sm font-semibold text-amber-700 mb-2">No tienes solicitudes activas</p>
+              
+              {creditHistory && (
+                <div className="mb-6 mt-4 bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+                  <h5 className="font-bold text-gray-800 mb-3 flex items-center">
+                    <i data-feather="file-text" className="w-5 h-5 mr-2 text-indigo-500"></i>
+                    Evaluación de Historial Crediticio Automatizada
+                  </h5>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div>
+                      <p className="text-gray-500 text-xs uppercase tracking-wider">Score Crediticio</p>
+                      <p className="font-bold text-xl text-indigo-700">{creditHistory.score}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 text-xs uppercase tracking-wider">Nivel de Riesgo</p>
+                      <p className={`font-bold text-lg ${creditHistory.risk === 'BAJO' ? 'text-green-600' : creditHistory.risk === 'MEDIO' ? 'text-amber-500' : 'text-red-500'}`}>{creditHistory.risk}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 text-xs uppercase tracking-wider">Deuda Registrada</p>
+                      <p className="font-semibold text-gray-800">{formatCurrency(creditHistory.debts)}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 text-xs uppercase tracking-wider">Monto Máx. Aprobado</p>
+                      <p className="font-bold text-lg text-green-600">{formatCurrency(creditHistory.recommendedAmount)}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <h4 className="text-lg font-bold text-gray-800 mb-4">Préstamo recomendado para ti</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                 <div className="rounded-lg border border-amber-200 bg-white p-3">
                   <p className="text-xs text-gray-500">Monto sugerido</p>
-                  <p className="text-lg font-bold text-gray-800">{formatCurrency(recommendedLoan.amount)}</p>
+                  <p className="text-lg font-bold text-gray-800">{formatCurrency(creditHistory?.recommendedAmount || recommendedLoan.amount)}</p>
                 </div>
                 <div className="rounded-lg border border-amber-200 bg-white p-3">
                   <p className="text-xs text-gray-500">Plazo</p>
@@ -241,7 +301,7 @@ export default function MiCuentaPage() {
                 </div>
                 <div className="rounded-lg border border-amber-200 bg-white p-3">
                   <p className="text-xs text-gray-500">Cuota estimada</p>
-                  <p className="text-lg font-bold text-gray-800">{formatCurrency(recommendedLoan.monthly)}</p>
+                  <p className="text-lg font-bold text-gray-800">{formatCurrency((creditHistory?.recommendedAmount || recommendedLoan.amount) * recommendedLoan.rate / (1 - Math.pow(1 + recommendedLoan.rate, -recommendedLoan.term)))}</p>
                 </div>
                 <div className="rounded-lg border border-amber-200 bg-white p-3">
                   <p className="text-xs text-gray-500">Tasa mensual</p>
@@ -249,10 +309,15 @@ export default function MiCuentaPage() {
                 </div>
               </div>
               <div className="flex items-center justify-between gap-3 flex-wrap">
-                <p className="text-sm text-gray-600">Total estimado a pagar: <span className="font-semibold text-gray-800">{formatCurrency(recommendedLoan.total)}</span></p>
-                <Link href="/simular" className="inline-block bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg font-medium">
-                  Simular y solicitar
-                </Link>
+                <p className="text-sm text-gray-600">Total estimado a pagar: <span className="font-semibold text-gray-800">{formatCurrency(((creditHistory?.recommendedAmount || recommendedLoan.amount) * recommendedLoan.rate / (1 - Math.pow(1 + recommendedLoan.rate, -recommendedLoan.term))) * recommendedLoan.term)}</span></p>
+                <div className="flex space-x-3">
+                  <Link href="/simular" className="inline-block border-2 border-amber-500 text-amber-600 hover:bg-amber-50 px-4 py-2 rounded-lg font-medium transition">
+                    Simular otro
+                  </Link>
+                  <button onClick={() => handleAcceptProposal(creditHistory?.recommendedAmount || recommendedLoan.amount, recommendedLoan.term, recommendedLoan.rate)} className="inline-block bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg font-medium transition cursor-pointer">
+                    Aceptar propuesta
+                  </button>
+                </div>
               </div>
             </div>
           )}

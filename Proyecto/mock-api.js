@@ -137,6 +137,36 @@ app.get('/api/loans/:id/status', (req, res) => {
   res.json({ id, status: record.status, eta: record.eta, monthly: record.monthly, total: record.total });
 });
 
+// Loans: sign with clave unica
+app.post('/api/loans/sign', (req, res) => {
+  setTimeout(() => {
+    res.json({ success: true, message: 'Firma realizada correctamente' });
+  }, 2000); // 2 seconds delay
+});
+
+// User: credit history
+app.get('/api/user/credit-history', (req, res) => {
+  const score = Math.floor(Math.random() * (900 - 300 + 1)) + 300;
+  let risk = 'ALTO';
+  let recommendedAmount = 1000000;
+  
+  if (score >= 700) {
+    risk = 'BAJO';
+    recommendedAmount = 7000000;
+  } else if (score >= 500) {
+    risk = 'MEDIO';
+    recommendedAmount = 3500000;
+  }
+  
+  res.json({
+    score,
+    risk,
+    recommendedAmount,
+    debts: Math.floor(Math.random() * 1000000),
+    reportDate: new Date().toISOString()
+  });
+});
+
 // User (mock)
 app.get('/api/user', (req, res) => {
   res.json(users['demo@flashloan.cl']);
