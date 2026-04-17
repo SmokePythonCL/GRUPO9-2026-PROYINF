@@ -111,10 +111,16 @@ export default function Home() {
             </div>
 
             <div className="mt-8 flex items-center space-x-4">
-              <div className="flex -space-x-2">
-                <div className="w-10 h-10 rounded-full border-2 border-white bg-gray-300"></div>
-                <div className="w-10 h-10 rounded-full border-2 border-white bg-gray-400"></div>
-                <div className="w-10 h-10 rounded-full border-2 border-white bg-gray-500"></div>
+              <div className="flex -space-x-3">
+                <div className="relative w-12 h-12 rounded-full border-2 border-white bg-gray-300 overflow-hidden shadow-sm">
+                  <Image src="/images/avatars/avatar1.png" alt="Cliente satisfecho" fill className="object-cover" />
+                </div>
+                <div className="relative w-12 h-12 rounded-full border-2 border-white bg-gray-400 overflow-hidden shadow-sm">
+                  <Image src="/images/avatars/avatar2.png" alt="Cliente satisfecho" fill className="object-cover" />
+                </div>
+                <div className="relative w-12 h-12 rounded-full border-2 border-white bg-gray-500 overflow-hidden shadow-sm">
+                  <Image src="/images/avatars/avatar3.png" alt="Cliente satisfecho" fill className="object-cover" />
+                </div>
               </div>
 
               <div>

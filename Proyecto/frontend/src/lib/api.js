@@ -87,3 +87,9 @@ export async function getUserCreditHistory() {
   const { data } = await client.get('/api/user/credit-history');
   return data;
 }
+
+export async function getUserLoansHistory() {
+  if (!BASE_URL) throw new Error('No API configured');
+  const { data } = await client.get('/api/user/loans-history');
+  return data;
+}

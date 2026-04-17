@@ -76,6 +76,9 @@ export default function MiCuentaLayout({ children }) {
             <Link href="/mi_cuenta" className={`block px-4 py-2 rounded-lg font-medium ${pathname === "/mi_cuenta" ? "bg-amber-50 text-amber-600" : "text-gray-600 hover:bg-amber-50"}`}>
               <i data-feather="home" className="inline mr-2 w-4 h-4"></i> Resumen
             </Link>
+            <Link href="/mi_cuenta/historial_prestamos" className={`block px-4 py-2 rounded-lg font-medium ${pathname.includes("/historial_prestamos") ? "bg-amber-50 text-amber-600" : "text-gray-600 hover:bg-amber-50"}`}>
+              <i data-feather="list" className="inline mr-2 w-4 h-4"></i> Historial de Préstamos
+            </Link>
             <Link href="/mi_cuenta/ajustes" className={`block px-4 py-2 rounded-lg font-medium ${pathname.includes("/ajustes") ? "bg-amber-50 text-amber-600" : "text-gray-600 hover:bg-amber-50"}`}>
               <i data-feather="settings" className="inline mr-2 w-4 h-4"></i> Configuración
             </Link>

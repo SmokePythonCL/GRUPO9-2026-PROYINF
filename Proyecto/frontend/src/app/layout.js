@@ -17,6 +17,9 @@ export const metadata = {
     template: "%s | PrestamoCL",
   },
   description: "Solicita tu préstamo 100% online",
+  icons: {
+    icon: "/icon.svg",
+  },
 };
 
 export default function RootLayout({ children }) {

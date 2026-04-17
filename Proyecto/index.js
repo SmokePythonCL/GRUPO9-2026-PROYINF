@@ -106,6 +106,41 @@ async function initSchema() {
   await pool.query(`ALTER TABLE user_documents ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW()`);
   // Backfill doc_type desde tipo si está nulo
   await pool.query(`UPDATE user_documents SET doc_type = tipo WHERE doc_type IS NULL AND tipo IS NOT NULL`);
+
+  // Crear tabla loans
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS loans (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      loan_id_str TEXT UNIQUE NOT NULL,
+      amount NUMERIC NOT NULL,
+      term INTEGER NOT NULL,
+      rate NUMERIC NOT NULL,
+      monthly NUMERIC NOT NULL,
+      total NUMERIC NOT NULL,
+      status TEXT NOT NULL,
+      application_date TIMESTAMP DEFAULT NOW(),
+      approval_date TIMESTAMP,
+      start_date TIMESTAMP,
+      due_date TIMESTAMP
+    );
+  `);
+
+  // Semilla de préstamos para probar historial si la tabla está recién creada
+  const countRes = await pool.query(`SELECT COUNT(*) FROM loans`);
+  if (parseInt(countRes.rows[0].count) === 0) {
+    const usersRes = await pool.query(`SELECT id FROM users LIMIT 5`);
+    for (const u of usersRes.rows) {
+      await pool.query(`
+        INSERT INTO loans (user_id, loan_id_str, amount, term, rate, monthly, total, status, application_date, approval_date, start_date, due_date)
+        VALUES 
+        ($1, 'L-' || SUBSTRING(MD5(RANDOM()::text), 1, 6), 1000000, 12, 0.012, 90000, 1080000, 'activo', NOW() - INTERVAL '2 months', NOW() - INTERVAL '1 month 28 days', NOW() - INTERVAL '1 month 25 days', NOW() + INTERVAL '10 months'),
+        ($1, 'L-' || SUBSTRING(MD5(RANDOM()::text), 1, 6), 500000, 6, 0.012, 85000, 510000, 'pagado', NOW() - INTERVAL '8 months', NOW() - INTERVAL '8 months', NOW() - INTERVAL '8 months', NOW() - INTERVAL '2 months'),
+        ($1, 'L-' || SUBSTRING(MD5(RANDOM()::text), 1, 6), 2000000, 24, 0.012, 95000, 2280000, 'rechazado', NOW() - INTERVAL '5 months', NULL, NULL, NULL),
+        ($1, 'L-' || SUBSTRING(MD5(RANDOM()::text), 1, 6), 150000, 3, 0.012, 51000, 153000, 'cancelado', NOW() - INTERVAL '10 months', NULL, NULL, NULL)
+      `, [u.id]);
+    }
+  }
 }
 
 
@@ -441,11 +476,79 @@ app.get('/api/user/documents', authMiddleware, async (req, res) => {
 // -------------------------------------------------------------
 // Firma con Clave Unica (Mock)
 // -------------------------------------------------------------
-app.post('/api/loans/sign', (req, res) => {
+app.post('/api/loans/sign', authMiddleware, (req, res) => {
   setTimeout(() => {
     res.json({ success: true, message: 'Firma realizada correctamente' });
   }, 2000);
 });
+
+// -------------------------------------------------------------
+// Gestión de Préstamos e Historial
+// -------------------------------------------------------------
+
+function simulateLoan(amount, term, rate = 0.012) {
+  amount = Number(amount) || 0;
+  term = Number(term) || 1;
+  const monthly = (amount * rate) / (1 - Math.pow(1 + rate, -term));
+  const total = monthly * term;
+  return {
+    amount,
+    term,
+    rate,
+    monthly: Math.round(monthly),
+    total: Math.round(total),
+  };
+}
+
+app.post('/api/loans/simulate', (req, res) => {
+  const { amount, term } = req.body || {};
+  const result = simulateLoan(amount, term);
+  res.json(result);
+});
+
+app.post('/api/loans/submit', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { amount, term } = req.body || {};
+    const sim = simulateLoan(amount, term);
+    const loanIdStr = 'L-' + Math.random().toString(36).slice(2, 10).toUpperCase();
+
+    const now = new Date();
+    const approvalDate = new Date(now.getTime() + 1000 * 60 * 60 * 24); 
+    const startDate = new Date(approvalDate.getTime() + 1000 * 60 * 60 * 24 * 2); 
+    const dueDate = new Date(startDate);
+    dueDate.setMonth(dueDate.getMonth() + sim.term);
+
+    const q = await pool.query(
+      `INSERT INTO loans (user_id, loan_id_str, amount, term, rate, monthly, total, status, application_date, approval_date, start_date, due_date)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+       RETURNING *`,
+      [userId, loanIdStr, sim.amount, sim.term, sim.rate, sim.monthly, sim.total, 'activo', now, approvalDate, startDate, dueDate]
+    );
+
+    res.status(201).json({ id: q.rows[0].loan_id_str, status: q.rows[0].status, summary: q.rows[0] });
+  } catch (err) {
+    console.error('SUBMIT LOAN ERROR:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+app.get('/api/user/loans-history', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const q = await pool.query(
+      `SELECT * FROM loans 
+       WHERE user_id = $1 AND application_date >= NOW() - INTERVAL '1 year'
+       ORDER BY application_date DESC`,
+      [userId]
+    );
+    res.json(q.rows);
+  } catch (err) {
+    console.error('GET LOANS HISTORY ERROR:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
 
 // -------------------------------------------------------------
 // Historial Crediticio (Mock)
