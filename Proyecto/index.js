@@ -63,12 +63,15 @@ const upload = multer({
 // 🔥 Crear columnas automáticamente (incluye telefono)
 // -------------------------------------------------------------
 async function initSchema() {
+  await pool.query(`DROP TABLE IF EXISTS loans CASCADE;`);
+  await pool.query(`DROP TABLE IF EXISTS user_documents CASCADE;`);
+  await pool.query(`DROP TABLE IF EXISTS users CASCADE;`);
+
   await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
-      id SERIAL PRIMARY KEY,
+      rut TEXT PRIMARY KEY,
       nombre TEXT NOT NULL,
       nacimiento DATE NOT NULL,
-      rut TEXT UNIQUE NOT NULL,
       apellido_paterno TEXT NOT NULL,
       apellido_materno TEXT NOT NULL,
       email TEXT UNIQUE NOT NULL,
@@ -82,16 +85,10 @@ async function initSchema() {
     );
   `);
 
-  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS telefono TEXT DEFAULT ''`);
-  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS direccion TEXT DEFAULT ''`);
-  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS card_last4 TEXT`);
-  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS card_brand TEXT`);
-  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS card_expiry TEXT`);
-
   await pool.query(`
     CREATE TABLE IF NOT EXISTS user_documents (
       id SERIAL PRIMARY KEY,
-      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      user_rut TEXT NOT NULL REFERENCES users(rut) ON DELETE CASCADE,
       doc_type TEXT NOT NULL,
       file_path TEXT NOT NULL,
       tipo TEXT,
@@ -99,19 +96,10 @@ async function initSchema() {
     );
   `);
 
-  // Asegurar columnas si la tabla existía antigua
-  await pool.query(`ALTER TABLE user_documents ADD COLUMN IF NOT EXISTS tipo TEXT`);
-  await pool.query(`ALTER TABLE user_documents ADD COLUMN IF NOT EXISTS file_path TEXT`);
-  await pool.query(`ALTER TABLE user_documents ADD COLUMN IF NOT EXISTS doc_type TEXT`);
-  await pool.query(`ALTER TABLE user_documents ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW()`);
-  // Backfill doc_type desde tipo si está nulo
-  await pool.query(`UPDATE user_documents SET doc_type = tipo WHERE doc_type IS NULL AND tipo IS NOT NULL`);
-
-  // Crear tabla loans
   await pool.query(`
     CREATE TABLE IF NOT EXISTS loans (
       id SERIAL PRIMARY KEY,
-      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      user_rut TEXT NOT NULL REFERENCES users(rut) ON DELETE CASCADE,
       loan_id_str TEXT UNIQUE NOT NULL,
       amount NUMERIC NOT NULL,
       term INTEGER NOT NULL,
@@ -126,22 +114,9 @@ async function initSchema() {
     );
   `);
 
-  // Semilla de préstamos para probar historial si la tabla está recién creada
-  const countRes = await pool.query(`SELECT COUNT(*) FROM loans`);
-  if (parseInt(countRes.rows[0].count) === 0) {
-    const usersRes = await pool.query(`SELECT id FROM users LIMIT 5`);
-    for (const u of usersRes.rows) {
-      await pool.query(`
-        INSERT INTO loans (user_id, loan_id_str, amount, term, rate, monthly, total, status, application_date, approval_date, start_date, due_date)
-        VALUES 
-        ($1, 'L-' || SUBSTRING(MD5(RANDOM()::text), 1, 6), 1000000, 12, 0.012, 90000, 1080000, 'activo', NOW() - INTERVAL '2 months', NOW() - INTERVAL '1 month 28 days', NOW() - INTERVAL '1 month 25 days', NOW() + INTERVAL '10 months'),
-        ($1, 'L-' || SUBSTRING(MD5(RANDOM()::text), 1, 6), 500000, 6, 0.012, 85000, 510000, 'pagado', NOW() - INTERVAL '8 months', NOW() - INTERVAL '8 months', NOW() - INTERVAL '8 months', NOW() - INTERVAL '2 months'),
-        ($1, 'L-' || SUBSTRING(MD5(RANDOM()::text), 1, 6), 2000000, 24, 0.012, 95000, 2280000, 'rechazado', NOW() - INTERVAL '5 months', NULL, NULL, NULL),
-        ($1, 'L-' || SUBSTRING(MD5(RANDOM()::text), 1, 6), 150000, 3, 0.012, 51000, 153000, 'cancelado', NOW() - INTERVAL '10 months', NULL, NULL, NULL)
-      `, [u.id]);
-    }
-  }
+  // seed omitido
 }
+
 
 
 // -------------------------------------------------------------
@@ -164,7 +139,7 @@ function mapUserResponse(row) {
   if (!row) return row;
 
   return {
-    id: row.id,
+    id: row.rut,
     nombre: row.nombre,
     apellido_paterno: row.apellido_paterno,
     apellido_materno: row.apellido_materno,
@@ -222,7 +197,7 @@ app.post('/api/auth/login', async (req, res) => {
     const valid = await bcrypt.compare(password, user.password_hash);
     if (!valid) return res.status(401).json({ error: 'Contraseña incorrecta' });
 
-    const token = jwt.sign({ id: user.id, rut: user.rut }, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ rut: user.rut }, JWT_SECRET, { expiresIn: '7d' });
 
     res.json({
       user: mapUserResponse(user),
@@ -238,8 +213,8 @@ app.post('/api/auth/login', async (req, res) => {
 // -------------------------------------------------------------
 app.get('/api/user', authMiddleware, async (req, res) => {
   const q = await pool.query(
-    "SELECT id, nombre, apellido_paterno, apellido_materno, nacimiento, rut, email, telefono, direccion, card_last4, card_brand, card_expiry FROM users WHERE id=$1",
-    [req.user.id]
+    "SELECT rut, nombre, apellido_paterno, apellido_materno, nacimiento, rut, email, telefono, direccion, card_last4, card_brand, card_expiry FROM users WHERE rut=$1",
+    [req.user.rut]
   );
   res.json(mapUserResponse(q.rows[0]));
 });
@@ -249,7 +224,7 @@ app.get('/api/user', authMiddleware, async (req, res) => {
 // -------------------------------------------------------------
 app.put('/api/user/update', authMiddleware, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userRut = req.user.rut;
 
     const {
       nombre,
@@ -285,8 +260,8 @@ app.put('/api/user/update', authMiddleware, async (req, res) => {
     // Validar email repetido solo si se intenta cambiar
     if (email !== undefined) {
       const exist = await pool.query(
-        "SELECT id FROM users WHERE email=$1 AND id<>$2",
-        [email, userId]
+        "SELECT rut FROM users WHERE email=$1 AND rut<>$2",
+        [email, userRut]
       );
 
       if (exist.rows.length > 0)
@@ -297,11 +272,11 @@ app.put('/api/user/update', authMiddleware, async (req, res) => {
     const query = `
       UPDATE users
       SET ${fields.join(", ")}
-      WHERE id = $${fields.length + 1}
-      RETURNING id, nombre, apellido_paterno, apellido_materno, nacimiento, rut, email, telefono, direccion, card_last4, card_brand, card_expiry
+      WHERE rut = $${fields.length + 1}
+      RETURNING rut, nombre, apellido_paterno, apellido_materno, nacimiento, rut as id, email, telefono, direccion, card_last4, card_brand, card_expiry
     `;
 
-    values.push(userId);
+    values.push(userRut);
 
     const updated = await pool.query(query, values);
 
@@ -318,7 +293,7 @@ app.put('/api/user/update', authMiddleware, async (req, res) => {
 // -------------------------------------------------------------
 app.put('/api/user/payment-method', authMiddleware, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userRut = req.user.rut;
     const { cardNumber, expiry, cvv } = req.body || {};
 
     const digits = String(cardNumber || '').replace(/\D/g, '');
@@ -348,9 +323,9 @@ app.put('/api/user/payment-method', authMiddleware, async (req, res) => {
     const q = await pool.query(
       `UPDATE users
        SET card_last4=$1, card_brand=$2, card_expiry=$3
-       WHERE id=$4
+       WHERE rut=$4
        RETURNING card_last4, card_brand, card_expiry`,
-      [last4, brand, safeExpiry, userId]
+      [last4, brand, safeExpiry, userRut]
     );
 
     res.json({
@@ -393,7 +368,7 @@ app.post('/api/auth/register', async (req, res) => {
     console.log('Registro intento:', { nombre, apellido_paterno, apellido_materno, nacimiento, rut, email, telefono, direccion });
 
     // Chequear duplicados por email y rut
-    const dup = await pool.query('SELECT id FROM users WHERE email=$1 OR rut=$2', [email, rut]);
+    const dup = await pool.query('SELECT rut FROM users WHERE email=$1 OR rut=$2', [email, rut]);
     if (dup.rows.length > 0) {
       return res.status(409).json({ error: 'Email o RUT ya registrado' });
     }
@@ -404,12 +379,12 @@ app.post('/api/auth/register', async (req, res) => {
     const q = await pool.query(
       `INSERT INTO users (nombre, apellido_paterno, apellido_materno, nacimiento, rut, email, password_hash, telefono, direccion)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
-       RETURNING id, nombre, apellido_paterno, apellido_materno, nacimiento, rut, email, telefono, direccion, card_last4, card_brand, card_expiry`,
+       RETURNING rut, nombre, apellido_paterno, apellido_materno, nacimiento, rut as id, email, telefono, direccion, card_last4, card_brand, card_expiry`,
       [nombre, apellido_paterno, apellido_materno, nacimiento, rut, email, password_hash, telefono, direccion]
     );
 
     const user = q.rows[0];
-    const token = jwt.sign({ id: user.id, rut: user.rut }, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ rut: user.rut }, JWT_SECRET, { expiresIn: '7d' });
 
     res.status(201).json({ user: mapUserResponse(user), token });
   } catch (err) {
@@ -428,7 +403,7 @@ app.post('/api/user/documents', authMiddleware, upload.fields([
   { name: 'comprobante_domicilio', maxCount: 1 }
 ]), async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userRut = req.user.rut;
     const saved = [];
 
     function saveDoc(fieldName, tipo) {
@@ -446,8 +421,8 @@ app.post('/api/user/documents', authMiddleware, upload.fields([
 
     for (const s of saved) {
       await pool.query(
-        `INSERT INTO user_documents (user_id, doc_type, tipo, file_path) VALUES ($1,$2,$3,$4)`,
-        [userId, s.tipo, s.tipo, s.file_path]
+        `INSERT INTO user_documents (user_rut, doc_type, tipo, file_path) VALUES ($1,$2,$3,$4)`,
+        [userRut, s.tipo, s.tipo, s.file_path]
       );
     }
 
@@ -461,10 +436,10 @@ app.post('/api/user/documents', authMiddleware, upload.fields([
 // Listar documentos del usuario
 app.get('/api/user/documents', authMiddleware, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userRut = req.user.rut;
     const q = await pool.query(
-      `SELECT id, tipo, file_path, created_at FROM user_documents WHERE user_id=$1 ORDER BY created_at DESC`,
-      [userId]
+      `SELECT id, tipo, file_path, created_at FROM user_documents WHERE user_rut=$1 ORDER BY created_at DESC`,
+      [userRut]
     );
     res.json(q.rows);
   } catch (err) {
@@ -508,7 +483,7 @@ app.post('/api/loans/simulate', (req, res) => {
 
 app.post('/api/loans/submit', authMiddleware, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userRut = req.user.rut;
     const { amount, term } = req.body || {};
     const sim = simulateLoan(amount, term);
     const loanIdStr = 'L-' + Math.random().toString(36).slice(2, 10).toUpperCase();
@@ -520,10 +495,10 @@ app.post('/api/loans/submit', authMiddleware, async (req, res) => {
     dueDate.setMonth(dueDate.getMonth() + sim.term);
 
     const q = await pool.query(
-      `INSERT INTO loans (user_id, loan_id_str, amount, term, rate, monthly, total, status, application_date, approval_date, start_date, due_date)
+      `INSERT INTO loans (user_rut, loan_id_str, amount, term, rate, monthly, total, status, application_date, approval_date, start_date, due_date)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
        RETURNING *`,
-      [userId, loanIdStr, sim.amount, sim.term, sim.rate, sim.monthly, sim.total, 'activo', now, approvalDate, startDate, dueDate]
+      [userRut, loanIdStr, sim.amount, sim.term, sim.rate, sim.monthly, sim.total, 'activo', now, approvalDate, startDate, dueDate]
     );
 
     res.status(201).json({ id: q.rows[0].loan_id_str, status: q.rows[0].status, summary: q.rows[0] });
@@ -535,12 +510,12 @@ app.post('/api/loans/submit', authMiddleware, async (req, res) => {
 
 app.get('/api/user/loans-history', authMiddleware, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userRut = req.user.rut;
     const q = await pool.query(
       `SELECT * FROM loans 
-       WHERE user_id = $1 AND application_date >= NOW() - INTERVAL '1 year'
+       WHERE user_rut = $1 AND application_date >= NOW() - INTERVAL '1 year'
        ORDER BY application_date DESC`,
-      [userId]
+      [userRut]
     );
     res.json(q.rows);
   } catch (err) {
@@ -554,7 +529,9 @@ app.get('/api/user/loans-history', authMiddleware, async (req, res) => {
 // Historial Crediticio (Mock)
 // -------------------------------------------------------------
 app.get('/api/user/credit-history', authMiddleware, (req, res) => {
-  const seed = (req.user.id * 97) % 600;
+  // Parsing numbers out of rut to seed
+  const numSeed = parseInt(req.user.rut.replace(/\D/g, '')) || 12345;
+  const seed = (numSeed * 97) % 600;
   const score = 300 + seed;
   let risk = 'ALTO';
   let recommendedAmount = 1000000;
@@ -571,7 +548,7 @@ app.get('/api/user/credit-history', authMiddleware, (req, res) => {
     score,
     risk,
     recommendedAmount,
-    debts: (req.user.id * 12345) % 1000000,
+    debts: (numSeed * 12345) % 1000000,
     reportDate: new Date().toISOString()
   });
 });
