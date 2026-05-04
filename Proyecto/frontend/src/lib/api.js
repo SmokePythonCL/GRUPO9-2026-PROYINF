@@ -16,13 +16,13 @@ client.interceptors.request.use((config) => {
 
 export async function simulateLoan(amount, term) {
   if (!BASE_URL) throw new Error('No API configured');
-  const { data } = await client.post('/api/loans/simulate', { amount, term });
+  const { data } = await client.post('/api/loans', { amount, term, dryRun: true });
   return data;
 }
 
 export async function submitLoan(payload) {
   if (!BASE_URL) throw new Error('No API configured');
-  const { data } = await client.post('/api/loans/submit', payload);
+  const { data } = await client.post('/api/loans', payload);
   return data;
 }
 
@@ -46,7 +46,7 @@ export async function getUser() {
 
 export async function uploadDocuments(formData) {
   if (!BASE_URL) throw new Error('No API configured');
-  const { data } = await client.post('/api/user/documents', formData, {
+  const { data } = await client.post('/api/me/documents', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   });
   return data;
@@ -54,19 +54,19 @@ export async function uploadDocuments(formData) {
 
 export async function getUserDocuments() {
   if (!BASE_URL) throw new Error('No API configured');
-  const { data } = await client.get('/api/user/documents');
+  const { data } = await client.get('/api/me/documents');
   return data;
 }
 
 export async function getLoanStatus(id) {
   if (!BASE_URL) throw new Error('No API configured');
-  const { data } = await client.get(`/api/loans/${id}/status`);
+  const { data } = await client.get(`/api/loans/${id}`);
   return data;
 }
 
 export async function updateUserProfile(payload) {
   if (!BASE_URL) throw new Error('No API configured');
-  const { data } = await client.put('/api/user/update', payload);
+  const { data } = await client.patch('/api/user', payload);
   return data;
 }
 
@@ -90,6 +90,6 @@ export async function getUserCreditHistory() {
 
 export async function getUserLoansHistory() {
   if (!BASE_URL) throw new Error('No API configured');
-  const { data } = await client.get('/api/user/loans-history');
+  const { data } = await client.get('/api/loans');
   return data;
 }

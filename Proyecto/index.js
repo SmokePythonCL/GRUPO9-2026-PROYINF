@@ -60,6 +60,11 @@ const upload = multer({
 });
 
 // -------------------------------------------------------------
+// Health Check
+// -------------------------------------------------------------
+app.get('/api/health', (req, res) => res.json({ ok: true }));
+
+// -------------------------------------------------------------
 // 🔥 Crear columnas automáticamente (incluye telefono)
 // -------------------------------------------------------------
 async function initSchema() {
@@ -222,7 +227,7 @@ app.get('/api/user', authMiddleware, async (req, res) => {
 // -------------------------------------------------------------
 // Actualizar usuario
 // -------------------------------------------------------------
-app.put('/api/user/update', authMiddleware, async (req, res) => {
+app.patch('/api/user', authMiddleware, async (req, res) => {
   try {
     const userRut = req.user.rut;
 
@@ -396,7 +401,7 @@ app.post('/api/auth/register', async (req, res) => {
 // -------------------------------------------------------------
 // Subida de documentos del usuario
 // -------------------------------------------------------------
-app.post('/api/user/documents', authMiddleware, upload.fields([
+app.post('/api/me/documents', authMiddleware, upload.fields([
   // Nombres usados por el frontend
   { name: 'carnet_frontal', maxCount: 1 },
   { name: 'carnet_trasera', maxCount: 1 },
@@ -434,7 +439,7 @@ app.post('/api/user/documents', authMiddleware, upload.fields([
 });
 
 // Listar documentos del usuario
-app.get('/api/user/documents', authMiddleware, async (req, res) => {
+app.get('/api/me/documents', authMiddleware, async (req, res) => {
   try {
     const userRut = req.user.rut;
     const q = await pool.query(
@@ -475,13 +480,15 @@ function simulateLoan(amount, term, rate = 0.012) {
   };
 }
 
-app.post('/api/loans/simulate', (req, res) => {
-  const { amount, term } = req.body || {};
-  const result = simulateLoan(amount, term);
-  res.json(result);
-});
-
-app.post('/api/loans/submit', authMiddleware, async (req, res) => {
+app.post('/api/loans', (req, res, next) => {
+  const { dryRun } = req.body || {};
+  if (dryRun) {
+    const { amount, term } = req.body || {};
+    const result = simulateLoan(amount, term);
+    return res.json(result);
+  }
+  authMiddleware(req, res, next);
+}, async (req, res) => {
   try {
     const userRut = req.user.rut;
     const { amount, term } = req.body || {};
@@ -508,7 +515,7 @@ app.post('/api/loans/submit', authMiddleware, async (req, res) => {
   }
 });
 
-app.get('/api/user/loans-history', authMiddleware, async (req, res) => {
+app.get('/api/loans', authMiddleware, async (req, res) => {
   try {
     const userRut = req.user.rut;
     const q = await pool.query(
@@ -520,6 +527,22 @@ app.get('/api/user/loans-history', authMiddleware, async (req, res) => {
     res.json(q.rows);
   } catch (err) {
     console.error('GET LOANS HISTORY ERROR:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+app.get('/api/loans/:id', authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userRut = req.user.rut;
+    const q = await pool.query(
+      `SELECT * FROM loans WHERE loan_id_str = $1 AND user_rut = $2`,
+      [id, userRut]
+    );
+    if (q.rows.length === 0) return res.status(404).json({ error: 'Not found' });
+    res.json(q.rows[0]);
+  } catch (err) {
+    console.error('GET LOAN DETAILS ERROR:', err);
     res.status(500).json({ error: 'Error interno' });
   }
 });

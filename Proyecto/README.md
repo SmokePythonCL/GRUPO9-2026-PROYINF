@@ -1,12 +1,12 @@
-# PrestamoCL – Monorepo (Frontend + Mock API)
+# PrestamoCL – Monorepo (Frontend + Backend)
 
 Este proyecto contiene:
 - Frontend en Next.js (carpeta `frontend/`), con migración de las páginas HTML a rutas de App Router.
-- Un backend de prueba (mock API) en Express (`mock-api.js`) para simular flujos sin datos reales.
+- Backend en Express (`index.js`) con conexión a PostgreSQL.
 
 ## Requisitos
 
-- Docker y Docker Compose (recomendado), o bien Node.js 18+ si vas a correr localmente sin contenedores.
+- Docker y Docker Compose (recomendado), o bien Node.js 18+ y PostgreSQL si vas a correr localmente sin contenedores.
 - `curl` o cualquier cliente HTTP para probar endpoints.
 
 ## Quickstart con Docker
@@ -19,7 +19,8 @@ docker compose up --build
 
 Servicios expuestos:
 - Frontend: http://localhost:3000
-- API mock: http://localhost:4000
+- Backend API: http://localhost:4000
+- Base de datos: PostgreSQL en puerto 5432
 
 Para detener:
 
@@ -29,11 +30,13 @@ docker compose down -v
 
 ## Ejecución local (sin Docker)
 
-Terminal A (API mock):
+Asegúrate de tener una base de datos PostgreSQL corriendo y de configurar las variables de entorno (`DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`).
+
+Terminal A (Backend):
 
 ```bash
 npm install
-npm run mock
+npm start
 ```
 
 Terminal B (Frontend):
@@ -49,63 +52,16 @@ Frontend en http://localhost:3000
 
 Más detalles en `frontend/README.md`.
 
-## API Mock – Endpoints
-
-Base URL: `http://localhost:4000`
-
-- Health
-  - GET `/api/health`
-
-- Auth (mock)
-  - POST `/api/auth/login`
-    - Body: `{ "email": "demo@flashloan.cl", "password": "cualquiera" }`
-    - Respuesta: `{ token, user }`
-
-- Simular préstamo
-  - POST `/api/loans/simulate`
-    - Body: `{ "amount": 1000000, "term": 24 }`
-    - Respuesta: `{ amount, term, rate, monthly, total }`
-
-- Enviar solicitud de préstamo
-  - POST `/api/loans/submit`
-    - Body: `{ amount, term, applicant: { ... }, documents: { ... } }`
-    - Respuesta: `{ id, status, eta, summary }`
-
-- Estado de solicitud
-  - GET `/api/loans/:id/status`
-    - Respuesta: `{ id, status, eta, monthly, total }`
-
-- Usuario demo
-  - GET `/api/user`
-    - Respuesta: `{ id, name, email }`
-
-### Ejemplos rápidos (curl)
-
-```bash
-# Health
-curl http://localhost:4000/api/health
-
-# Simular
-curl -X POST http://localhost:4000/api/loans/simulate \
-  -H 'Content-Type: application/json' \
-  -d '{"amount": 1000000, "term": 24}'
-
-# Login
-curl -X POST http://localhost:4000/api/auth/login \
-  -H 'Content-Type: application/json' \
-  -d '{"email":"demo@flashloan.cl","password":"x"}'
-```
-
 ## Estructura relevante
 
 - `frontend/` – Aplicación Next.js
   - `src/app/` – Rutas de la App Router (inicio, como_funciona, beneficios, etc.)
-  - `src/lib/api.js` – Cliente Axios hacia la API mock
-- `mock-api.js` – Servidor Express con endpoints de prueba
-- `docker-compose.yml` – Orquestación de frontend y backend mock
+  - `src/lib/api.js` – Cliente Axios hacia la API
+- `index.js` – Servidor Express principal
+- `db.js` – Conexión a PostgreSQL
+- `docker-compose.yml` – Orquestación de frontend, backend y base de datos
 
 ## Notas
 
-- La API mock guarda datos en memoria (se reinician al reiniciar el proceso).
 - Algunas imágenes externas usan `next/image` con `unoptimized` por simplicidad.
 - Feather y Vanta se cargan desde CDN; requieren internet para renderizar correctamente.

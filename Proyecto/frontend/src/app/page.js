@@ -36,6 +36,8 @@ export default function Home() {
       loadScript("https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.waves.min.js"),
     ])
       .then(() => {
+        if (!mounted) return;
+
         try {
           if (window.feather) window.feather.replace();
         } catch {}
