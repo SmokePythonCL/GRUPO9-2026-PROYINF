@@ -113,7 +113,7 @@ export default function Solicitar() {
     try {
       if (window.feather && typeof window.feather.replace === "function")
         window.feather.replace();
-    } catch (e) {}
+    } catch (e) { }
 
     if (typeof window !== "undefined") {
       const savedSimulation = localStorage.getItem("currentSimulation");
@@ -132,13 +132,13 @@ export default function Solicitar() {
   useEffect(() => {
     const ok = Boolean(
       formData.rut &&
-        formData.nombre &&
-        formData.email &&
-        formData.telefono &&
-        formData.fecha &&
-        formData.direccion &&
-        region &&
-        comuna
+      formData.nombre &&
+      formData.email &&
+      formData.telefono &&
+      formData.fecha &&
+      formData.direccion &&
+      region &&
+      comuna
     );
     setIsValidStep1(ok);
   }, [formData, region, comuna]);
@@ -247,7 +247,7 @@ export default function Solicitar() {
       };
 
       localStorage.setItem("loanSummary", JSON.stringify(approvedSummary));
-      alert("¡Solicitud enviada y aprobada! Ya puedes ver el estado en tu cuenta.");
+      alert("¡Solicitud enviada con éxito! Ya puedes ver el estado en tu cuenta.");
       router.push("/mi_cuenta");
     } catch {
       const fallbackSummary = {
@@ -264,7 +264,7 @@ export default function Solicitar() {
       };
 
       localStorage.setItem("loanSummary", JSON.stringify(fallbackSummary));
-      alert("¡Solicitud enviada y aprobada! Ya puedes ver el estado en tu cuenta.");
+      alert("¡Solicitud enviada con éxito! Ya puedes ver el estado en tu cuenta.");
       router.push("/mi_cuenta");
     }
   }
@@ -316,18 +316,16 @@ export default function Solicitar() {
             <div className="flex justify-between relative">
               <div className="flex-1 flex flex-col items-center relative z-10">
                 <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
-                    step >= 1
-                      ? "bg-amber-500 text-white"
-                      : "bg-gray-200 text-gray-500"
-                  }`}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${step >= 1
+                    ? "bg-amber-500 text-white"
+                    : "bg-gray-200 text-gray-500"
+                    }`}
                 >
                   1
                 </div>
                 <span
-                  className={`${
-                    step >= 1 ? "text-amber-500" : "text-gray-500"
-                  } text-sm font-medium`}
+                  className={`${step >= 1 ? "text-amber-500" : "text-gray-500"
+                    } text-sm font-medium`}
                 >
                   Datos personales
                 </span>
@@ -335,18 +333,16 @@ export default function Solicitar() {
 
               <div className="flex-1 flex flex-col items-center relative z-10">
                 <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
-                    step >= 2
-                      ? "bg-amber-500 text-white"
-                      : "bg-gray-200 text-gray-500"
-                  }`}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${step >= 2
+                    ? "bg-amber-500 text-white"
+                    : "bg-gray-200 text-gray-500"
+                    }`}
                 >
                   2
                 </div>
                 <span
-                  className={`${
-                    step >= 2 ? "text-amber-500" : "text-gray-500"
-                  } text-sm font-medium`}
+                  className={`${step >= 2 ? "text-amber-500" : "text-gray-500"
+                    } text-sm font-medium`}
                 >
                   Documentos
                 </span>
@@ -354,18 +350,16 @@ export default function Solicitar() {
 
               <div className="flex-1 flex flex-col items-center relative z-10">
                 <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
-                    step >= 3
-                      ? "bg-amber-500 text-white"
-                      : "bg-gray-200 text-gray-500"
-                  }`}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${step >= 3
+                    ? "bg-amber-500 text-white"
+                    : "bg-gray-200 text-gray-500"
+                    }`}
                 >
                   3
                 </div>
                 <span
-                  className={`${
-                    step >= 3 ? "text-amber-500" : "text-gray-500"
-                  } text-sm font-medium`}
+                  className={`${step >= 3 ? "text-amber-500" : "text-gray-500"
+                    } text-sm font-medium`}
                 >
                   Firma
                 </span>
@@ -373,18 +367,16 @@ export default function Solicitar() {
 
               <div className="flex-1 flex flex-col items-center relative z-10">
                 <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
-                    step >= 4
-                      ? "bg-amber-500 text-white"
-                      : "bg-gray-200 text-gray-500"
-                  }`}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${step >= 4
+                    ? "bg-amber-500 text-white"
+                    : "bg-gray-200 text-gray-500"
+                    }`}
                 >
                   4
                 </div>
                 <span
-                  className={`${
-                    step >= 4 ? "text-amber-500" : "text-gray-500"
-                  } text-sm font-medium`}
+                  className={`${step >= 4 ? "text-amber-500" : "text-gray-500"
+                    } text-sm font-medium`}
                 >
                   Confirmación
                 </span>
@@ -398,39 +390,39 @@ export default function Solicitar() {
                       step === 1
                         ? "25%"
                         : step === 2
-                        ? "50%"
-                        : step === 3
-                        ? "75%"
-                        : "100%"
+                          ? "50%"
+                          : step === 3
+                            ? "75%"
+                            : "100%"
                   }}
                 />
               </div>
             </div>
           </div>
-<form id="CL-form" className="p-6 md:p-8" onSubmit={handleSubmit}>
-            {step===1 && (
+          <form id="CL-form" className="p-6 md:p-8" onSubmit={handleSubmit}>
+            {step === 1 && (
               <div className="form-step active" id="step-1">
                 <h2 className="text-2xl font-bold text-gray-800 mb-6">Datos personales</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label htmlFor="rut" className="block text-gray-700 font-medium mb-2">RUT</label>
-                    <input type="text" id="rut" name="rut" value={formData.rut} onChange={e=>setFormData({...formData, rut:e.target.value})} className="w-full px-4 py-3 border border-gray-300 rounded-lg" placeholder="11.111.111-1" required />
+                    <input type="text" id="rut" name="rut" value={formData.rut} onChange={e => setFormData({ ...formData, rut: e.target.value })} className="w-full px-4 py-3 border border-gray-300 rounded-lg" placeholder="11.111.111-1" required />
                   </div>
                   <div>
                     <label htmlFor="nombre" className="block text-gray-700 font-medium mb-2">Nombre completo</label>
-                    <input type="text" id="nombre" name="nombre" value={formData.nombre} onChange={e=>setFormData({...formData, nombre:e.target.value})} className="w-full px-4 py-3 border border-gray-300 rounded-lg" placeholder="Juan Pérez González" required />
+                    <input type="text" id="nombre" name="nombre" value={formData.nombre} onChange={e => setFormData({ ...formData, nombre: e.target.value })} className="w-full px-4 py-3 border border-gray-300 rounded-lg" placeholder="Juan Pérez González" required />
                   </div>
                   <div>
                     <label htmlFor="email" className="block text-gray-700 font-medium mb-2">Correo electrónico</label>
-                    <input type="email" id="email" name="email" value={formData.email} onChange={e=>setFormData({...formData, email:e.target.value})} className="w-full px-4 py-3 border border-gray-300 rounded-lg" placeholder="juan@example.com" required />
+                    <input type="email" id="email" name="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className="w-full px-4 py-3 border border-gray-300 rounded-lg" placeholder="juan@example.com" required />
                   </div>
                   <div>
                     <label htmlFor="telefono" className="block text-gray-700 font-medium mb-2">Teléfono</label>
-                    <input type="tel" id="telefono" name="telefono" value={formData.telefono} onChange={e=>setFormData({...formData, telefono:e.target.value})} className="w-full px-4 py-3 border border-gray-300 rounded-lg" placeholder="+56 9 1234 5678" required />
+                    <input type="tel" id="telefono" name="telefono" value={formData.telefono} onChange={e => setFormData({ ...formData, telefono: e.target.value })} className="w-full px-4 py-3 border border-gray-300 rounded-lg" placeholder="+56 9 1234 5678" required />
                   </div>
                   <div>
                     <label htmlFor="fecha-nacimiento" className="block text-gray-700 font-medium mb-2">Fecha de nacimiento</label>
-                    <input type="date" id="fecha-nacimiento" name="fecha-nacimiento" value={formData.fecha} onChange={e=>setFormData({...formData, fecha:e.target.value})} className="w-full px-4 py-3 border border-gray-300 rounded-lg" required />
+                    <input type="date" id="fecha-nacimiento" name="fecha-nacimiento" value={formData.fecha} onChange={e => setFormData({ ...formData, fecha: e.target.value })} className="w-full px-4 py-3 border border-gray-300 rounded-lg" required />
                   </div>
                   <div>
                     <label htmlFor="genero" className="block text-gray-700 font-medium mb-2">Género</label>
@@ -444,13 +436,13 @@ export default function Solicitar() {
 
                 <div className="mt-6">
                   <label htmlFor="direccion" className="block text-gray-700 font-medium mb-2">Dirección</label>
-                  <input type="text" id="direccion" name="direccion" value={formData.direccion} onChange={e=>setFormData({...formData, direccion:e.target.value})} className="w-full px-4 py-3 border border-gray-300 rounded-lg" placeholder="Av. Principal 123" required />
+                  <input type="text" id="direccion" name="direccion" value={formData.direccion} onChange={e => setFormData({ ...formData, direccion: e.target.value })} className="w-full px-4 py-3 border border-gray-300 rounded-lg" placeholder="Av. Principal 123" required />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
                   <div>
                     <label htmlFor="region" className="block text-gray-700 font-medium mb-2">Región</label>
-                    <select id="region" name="region" value={region} onChange={e=>setRegion(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg" required>
+                    <select id="region" name="region" value={region} onChange={e => setRegion(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg" required>
                       <option value="" disabled>Seleccione región</option>
                       {CHILE_REGIONS.map((r) => (
                         <option key={r.id} value={r.id}>{r.name}</option>
@@ -459,7 +451,7 @@ export default function Solicitar() {
                   </div>
                   <div>
                     <label htmlFor="comuna" className="block text-gray-700 font-medium mb-2">Comuna</label>
-                    <select id="comuna" name="comuna" value={comuna} onChange={e=>setComuna(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg" required>
+                    <select id="comuna" name="comuna" value={comuna} onChange={e => setComuna(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg" required>
                       <option value="" disabled>Seleccione comuna</option>
                       {comunas.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
@@ -477,7 +469,7 @@ export default function Solicitar() {
               </div>
             )}
 
-            {step===2 && (
+            {step === 2 && (
               <div className="form-step active" id="step-2">
                 <h2 className="text-2xl font-bold text-gray-800 mb-6">Documentación requerida</h2>
                 <p className="text-sm text-gray-600 mb-4">
@@ -497,8 +489,8 @@ export default function Solicitar() {
                       <i data-feather="file-text" className="w-12 h-12 text-gray-400 mb-4" />
                       <h3 className="text-lg font-medium text-gray-800 mb-2">Cédula de identidad (frente)</h3>
                       <p className="text-sm text-gray-600 mb-3">{getDocumentStatus(files.frente).detail}</p>
-                      <input type="file" id="ci-frente" name="ci-frente" className="hidden" accept="image/*,.pdf" onChange={(e)=>handleFileChange(e,'frente')} />
-                      <button type="button" onClick={()=>document.getElementById('ci-frente').click()} className="px-4 py-2 bg-gray-100 rounded-lg">
+                      <input type="file" id="ci-frente" name="ci-frente" className="hidden" accept="image/*,.pdf" onChange={(e) => handleFileChange(e, 'frente')} />
+                      <button type="button" onClick={() => document.getElementById('ci-frente').click()} className="px-4 py-2 bg-gray-100 rounded-lg">
                         {files.frente ? "Reemplazar archivo" : "Seleccionar archivo"}
                       </button>
                     </div>
@@ -517,8 +509,8 @@ export default function Solicitar() {
                       <i data-feather="file-text" className="w-12 h-12 text-gray-400 mb-4" />
                       <h3 className="text-lg font-medium text-gray-800 mb-2">Cédula de identidad (reverso)</h3>
                       <p className="text-sm text-gray-600 mb-3">{getDocumentStatus(files.reverso).detail}</p>
-                      <input type="file" id="ci-reverso" name="ci-reverso" className="hidden" accept="image/*,.pdf" onChange={(e)=>handleFileChange(e,'reverso')} />
-                      <button type="button" onClick={()=>document.getElementById('ci-reverso').click()} className="px-4 py-2 bg-gray-100 rounded-lg">
+                      <input type="file" id="ci-reverso" name="ci-reverso" className="hidden" accept="image/*,.pdf" onChange={(e) => handleFileChange(e, 'reverso')} />
+                      <button type="button" onClick={() => document.getElementById('ci-reverso').click()} className="px-4 py-2 bg-gray-100 rounded-lg">
                         {files.reverso ? "Reemplazar archivo" : "Seleccionar archivo"}
                       </button>
                     </div>
@@ -537,8 +529,8 @@ export default function Solicitar() {
                       <i data-feather="file-text" className="w-12 h-12 text-gray-400 mb-4" />
                       <h3 className="text-lg font-medium text-gray-800 mb-2">Comprobante de domicilio</h3>
                       <p className="text-sm text-gray-600 mb-3">{getDocumentStatus(files.comprobante).detail}</p>
-                      <input type="file" id="comprobante" name="comprobante" className="hidden" accept="image/*,.pdf" onChange={(e)=>handleFileChange(e,'comprobante')} />
-                      <button type="button" onClick={()=>document.getElementById('comprobante').click()} className="px-4 py-2 bg-gray-100 rounded-lg">
+                      <input type="file" id="comprobante" name="comprobante" className="hidden" accept="image/*,.pdf" onChange={(e) => handleFileChange(e, 'comprobante')} />
+                      <button type="button" onClick={() => document.getElementById('comprobante').click()} className="px-4 py-2 bg-gray-100 rounded-lg">
                         {files.comprobante ? "Reemplazar archivo" : "Seleccionar archivo"}
                       </button>
                     </div>
@@ -552,7 +544,7 @@ export default function Solicitar() {
               </div>
             )}
 
-            {step===3 && (
+            {step === 3 && (
               <div className="form-step active" id="step-3">
                 <h2 className="text-2xl font-bold text-gray-800 mb-6">Firma de documentos</h2>
                 <p className="text-gray-600 mb-6">Para continuar, debes firmar digitalmente tu solicitud usando ClaveÚnica.</p>
@@ -593,7 +585,7 @@ export default function Solicitar() {
             )}
 
 
-            {step===4 && (
+            {step === 4 && (
               <div className="form-step active" id="step-4">
                 <h2 className="text-2xl font-bold text-gray-800 mb-6">Confirmación de datos</h2>
                 <p className="text-gray-600 mb-6">Por favor revisa que toda la información sea correcta antes de enviar tu solicitud.</p>

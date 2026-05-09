@@ -112,6 +112,7 @@ async function initSchema() {
       monthly NUMERIC NOT NULL,
       total NUMERIC NOT NULL,
       status TEXT NOT NULL,
+      comments TEXT,
       application_date TIMESTAMP DEFAULT NOW(),
       approval_date TIMESTAMP,
       start_date TIMESTAMP,
@@ -543,6 +544,30 @@ app.get('/api/loans/:id', authMiddleware, async (req, res) => {
     res.json(q.rows[0]);
   } catch (err) {
     console.error('GET LOAN DETAILS ERROR:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// -------------------------------------------------------------
+// Actualizar Estado del Préstamo
+// -------------------------------------------------------------
+app.patch('/api/loans/:id/status', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, comments } = req.body;
+    
+    if (!status) return res.status(400).json({ error: 'Estado es requerido' });
+
+    const q = await pool.query(
+      `UPDATE loans SET status = $1, comments = $2 WHERE loan_id_str = $3 RETURNING *`,
+      [status, comments || null, id]
+    );
+
+    if (q.rows.length === 0) return res.status(404).json({ error: 'Préstamo no encontrado' });
+
+    res.json(q.rows[0]);
+  } catch (err) {
+    console.error('UPDATE LOAN STATUS ERROR:', err);
     res.status(500).json({ error: 'Error interno' });
   }
 });

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Chart from "chart.js/auto";
 import feather from "feather-icons";
-import { getUser, getUserDocuments, getUserCreditHistory } from "@/lib/api";
+import { getUser, getUserDocuments, getUserCreditHistory, getUserLoansHistory } from "@/lib/api";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -13,6 +13,7 @@ export default function MiCuentaPage() {
   const [paymentMethod, setPaymentMethod] = useState(null);
   const [loanSummary, setLoanSummary] = useState(null);
   const [creditHistory, setCreditHistory] = useState(null);
+  const [realLoans, setRealLoans] = useState([]);
   const paymentChartRef = useRef(null);
   const required = ["carnet_frontal", "carnet_trasera", "comprobante_domicilio"];
   const router = useRouter();
@@ -160,6 +161,11 @@ export default function MiCuentaPage() {
           } catch (e) {}
         }
       }
+
+      try {
+        const loansList = await getUserLoansHistory();
+        setRealLoans(loansList || []);
+      } catch (e) {}
     })();
 
     const ctx = document.getElementById("paymentChart");
@@ -200,10 +206,15 @@ export default function MiCuentaPage() {
         paymentChartRef.current = null;
       }
     };
-  }, [loanSummary?.paidInstallments, loanSummary?.pendingInstallments]);
+  }, [loanSummary?.paidInstallments, loanSummary?.pendingInstallments, realLoans.length]);
 
   const present = new Set(docs.map(d => d.tipo));
   const pending = required.filter(r => !present.has(r));
+  
+  useEffect(() => {
+    feather.replace();
+  }, [realLoans, docs]);
+
   const nombreCompleto = [profile?.nombre, profile?.apellido_paterno, profile?.apellido_materno]
     .filter(Boolean)
     .join(" ");
@@ -230,6 +241,79 @@ export default function MiCuentaPage() {
               </Link>
             </div>
           </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <h3 className="text-xl font-bold text-gray-800 mb-4">Seguimiento de tu Solicitud</h3>
+          {realLoans.length > 0 ? (
+            <div className="space-y-4">
+              {realLoans.slice(0, 3).map((loan, idx) => (
+                <div key={idx} className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex justify-between items-center mb-3">
+                    <p className="font-semibold text-gray-700">Préstamo ID: {loan.loan_id_str}</p>
+                    <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                      loan.status === 'activo' || loan.status === 'pagado' ? 'bg-green-100 text-green-700' :
+                      loan.status === 'rechazado' || loan.status === 'cancelado' ? 'bg-red-100 text-red-700' :
+                      'bg-blue-100 text-blue-700'
+                    }`}>
+                      {loan.status.toUpperCase()}
+                    </span>
+                  </div>
+                  
+                  {/* Timeline */}
+                  <div className="flex items-center text-sm mb-4 mt-2">
+                    <div className="flex-1 flex flex-col items-center">
+                      <div className="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center mb-1">
+                        <i data-feather="check" className="w-4 h-4"></i>
+                      </div>
+                      <span className="text-xs font-semibold text-gray-600 text-center">Solicitud<br/>enviada</span>
+                    </div>
+                    <div className={`h-1 flex-1 ${loan.status !== 'en revisión' && loan.application_date ? 'bg-green-500' : 'bg-gray-200'}`}></div>
+                    
+                    <div className="flex-1 flex flex-col items-center">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-1 ${
+                        loan.status === 'en revisión' ? 'bg-blue-500 text-white' : 
+                        (loan.status === 'activo' || loan.status === 'rechazado' || loan.status === 'pagado' || loan.status === 'cancelado' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500')
+                      }`}>
+                        <i data-feather={loan.status === 'en revisión' ? 'clock' : 'check'} className="w-4 h-4"></i>
+                      </div>
+                      <span className="text-xs font-semibold text-gray-600 text-center">En<br/>revisión</span>
+                    </div>
+                    <div className={`h-1 flex-1 ${(loan.status === 'activo' || loan.status === 'pagado' || loan.status === 'cancelado' || loan.status === 'rechazado') ? 'bg-green-500' : 'bg-gray-200'}`}></div>
+                    
+                    <div className="flex-1 flex flex-col items-center">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-1 ${
+                        (loan.status === 'activo' || loan.status === 'pagado') ? 'bg-green-500 text-white' :
+                        (loan.status === 'rechazado' || loan.status === 'cancelado') ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-500'
+                      }`}>
+                        <i data-feather={
+                          (loan.status === 'activo' || loan.status === 'pagado') ? 'check' :
+                          (loan.status === 'rechazado' || loan.status === 'cancelado') ? 'x' : 'circle'
+                        } className="w-4 h-4"></i>
+                      </div>
+                      <span className="text-xs font-semibold text-gray-600 text-center">
+                        {(loan.status === 'rechazado' || loan.status === 'cancelado') ? 'Rechazado' : 'Aprobado'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {loan.status === 'rechazado' && loan.comments && (
+                    <div className="mt-4 bg-red-50 border border-red-200 p-4 rounded-lg">
+                      <p className="text-sm text-red-800 font-semibold mb-1">Motivo del rechazo:</p>
+                      <p className="text-sm text-red-700 mb-3">{loan.comments}</p>
+                      <a href="mailto:agente@banco.cl" className="inline-block bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+                        Contactar a mi agente
+                      </a>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-5">
+              <p className="text-sm font-semibold text-amber-700">No tienes solicitudes en seguimiento</p>
+            </div>
+          )}
         </div>
 
         <div className="bg-white rounded-lg shadow-sm p-6">
