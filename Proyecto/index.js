@@ -104,7 +104,7 @@ async function initSchema() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS loans (
       id SERIAL PRIMARY KEY,
-      user_rut TEXT NOT NULL REFERENCES users(rut) ON DELETE CASCADE,
+      user_rut TEXT NOT NULL,
       loan_id_str TEXT UNIQUE NOT NULL,
       amount NUMERIC NOT NULL,
       term INTEGER NOT NULL,
@@ -457,7 +457,7 @@ app.get('/api/me/documents', authMiddleware, async (req, res) => {
 // -------------------------------------------------------------
 // Firma con Clave Unica (Mock)
 // -------------------------------------------------------------
-app.post('/api/loans/sign', authMiddleware, (req, res) => {
+app.post('/api/loans/sign', (req, res) => {
   setTimeout(() => {
     res.json({ success: true, message: 'Firma realizada correctamente' });
   }, 2000);
@@ -481,17 +481,33 @@ function simulateLoan(amount, term, rate = 0.012) {
   };
 }
 
-app.post('/api/loans', (req, res, next) => {
+app.post('/api/loans', async (req, res) => {
   const { dryRun } = req.body || {};
   if (dryRun) {
     const { amount, term } = req.body || {};
     const result = simulateLoan(amount, term);
     return res.json(result);
   }
-  authMiddleware(req, res, next);
-}, async (req, res) => {
+
   try {
-    const userRut = req.user.rut;
+    let userRut = null;
+    const auth = req.headers.authorization || '';
+    const token = auth.startsWith('Bearer ') ? auth.slice(7) : null;
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        userRut = decoded.rut;
+      } catch (e) {}
+    }
+
+    if (!userRut) {
+      userRut = req.body?.applicant?.rut;
+    }
+
+    if (!userRut) {
+      return res.status(400).json({ error: 'Falta el RUT del solicitante' });
+    }
+
     const { amount, term } = req.body || {};
     const sim = simulateLoan(amount, term);
     const loanIdStr = 'L-' + Math.random().toString(36).slice(2, 10).toUpperCase();

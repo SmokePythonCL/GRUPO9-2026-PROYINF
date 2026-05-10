@@ -247,8 +247,18 @@ export default function Solicitar() {
       };
 
       localStorage.setItem("loanSummary", JSON.stringify(approvedSummary));
-      alert("¡Solicitud enviada con éxito! Ya puedes ver el estado en tu cuenta.");
-      router.push("/mi_cuenta");
+      
+      if (!localStorage.getItem("token")) {
+        const wantsToRegister = window.confirm("¡Solicitud enviada con éxito y guardada en el sistema! ¿Deseas crear una cuenta ahora para hacer seguimiento a tu préstamo?");
+        if (wantsToRegister) {
+          router.push("/registro");
+        } else {
+          router.push("/prestamo_aceptado");
+        }
+      } else {
+        alert("¡Solicitud enviada con éxito! Ya puedes ver el estado en tu cuenta.");
+        router.push("/mi_cuenta");
+      }
     } catch {
       const fallbackSummary = {
         loanId: null,
@@ -264,8 +274,18 @@ export default function Solicitar() {
       };
 
       localStorage.setItem("loanSummary", JSON.stringify(fallbackSummary));
-      alert("¡Solicitud enviada con éxito! Ya puedes ver el estado en tu cuenta.");
-      router.push("/mi_cuenta");
+      
+      if (!localStorage.getItem("token")) {
+        const wantsToRegister = window.confirm("¡Solicitud enviada con éxito y guardada en el sistema! ¿Deseas crear una cuenta ahora para hacer seguimiento a tu préstamo?");
+        if (wantsToRegister) {
+          router.push("/registro");
+        } else {
+          router.push("/prestamo_aceptado");
+        }
+      } else {
+        alert("¡Solicitud enviada con éxito! Ya puedes ver el estado en tu cuenta.");
+        router.push("/mi_cuenta");
+      }
     }
   }
 
@@ -426,7 +446,7 @@ export default function Solicitar() {
                   </div>
                   <div>
                     <label htmlFor="genero" className="block text-gray-700 font-medium mb-2">Género</label>
-                    <select id="genero" name="genero" className="w-full px-4 py-3 border border-gray-300 rounded-lg" required>
+                    <select id="genero" name="genero" defaultValue="" className="w-full px-4 py-3 border border-gray-300 rounded-lg" required>
                       <option value="" disabled>Seleccione una opción</option>
                       <option value="masculino">Masculino</option>
                       <option value="femenino">Femenino</option>
