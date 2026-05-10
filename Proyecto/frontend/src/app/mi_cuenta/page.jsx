@@ -165,6 +165,11 @@ export default function MiCuentaPage() {
       try {
         const loansList = await getUserLoansHistory();
         setRealLoans(loansList || []);
+
+        if (!loansList || loansList.length === 0) {
+          localStorage.removeItem("loanSummary");
+          setLoanSummary(null);
+        }
       } catch (e) {}
     })();
 
