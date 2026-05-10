@@ -32,7 +32,7 @@ Se usó partición por clases de equivalencia para comparar dos casos principale
 - `GET /api/loans/:id`
 
 **Evidencia de ejecución**
-![Resultado test martina](image.png)
+![Resultado test martina](./screenshots/test_loan_real_martina.png)
 
 **Ejecución específica de la prueba de Detalle**
 `python3 -m unittest test_loans_real_martina.py -v`
@@ -46,7 +46,7 @@ Prueba a Prueba: GET /api/loans/
 |Obtener los campos de un prestamo en el historial|Lista de campos del prestamo hecho y una lista vacia|Comprobar que retorna los datos de prestamo con o sin historial
 
 
-![Resultado Tests HU007](./capturas/resultado.png)
+![Resultados test Alejandro](./screenshots/test_historial.png)
 
 Tiempo empleado de 7hrs aproximado.
 Las pruebas fueron exitosas, ambas pruebas retornaron lo esperado, codigo 200 para obtener el historial y las listas de los  
