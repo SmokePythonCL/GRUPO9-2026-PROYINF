@@ -34,7 +34,7 @@ Se usó partición por clases de equivalencia para comparar dos casos principale
 **Evidencia de ejecución**
 ![Resultado test martina](./screenshots/test_loan_real_martina.png)
 
-**Ejecución específica de la prueba de Detalle**
+**Ejecución específica de la prueba**
 `python3 -m unittest test_loans_real_martina.py -v`
 
 ### Alejandro: Historial de prestamos (HU007)
@@ -50,6 +50,9 @@ Prueba a Prueba: GET /api/loans/
 
 Tiempo empleado de 7hrs aproximado.
 Las pruebas fueron exitosas, ambas pruebas retornaron lo esperado, codigo 200 para obtener el historial y las listas de los  
+
+**Ejecución específica de la prueba**
+`python3 -m unittest test_historial.py -v`
 
 
 ### Vicente: Detalle de Préstamo (HU007)
