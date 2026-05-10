@@ -37,6 +37,21 @@ Se usó partición por clases de equivalencia para comparar dos casos principale
 **Ejecución específica de la prueba de Detalle**
 `python3 -m unittest test_loans_real_martina.py -v`
 
+### Alejandro: Historial de prestamos (HU007)
+Prueba a Prueba: GET /api/loans/
+
+|Input | Output esperado |Contexto de ejecución|
+|-----|---------|-------|
+|Obtener el historial de prestamos| 200 OK| Comprobar si el GET retorna el historial en dos usuarios|
+|Obtener los campos de un prestamo en el historial|Lista de campos del prestamo hecho y una lista vacia|Comprobar que retorna los datos de prestamo con o sin historial
+
+
+![Resultado Tests HU007](./capturas/resultado.png)
+
+Tiempo empleado de 7hrs aproximado.
+Las pruebas fueron exitosas, ambas pruebas retornaron lo esperado, codigo 200 para obtener el historial y las listas de los  
+
+
 ### Vicente: Detalle de Préstamo (HU007)
 
 Prueba: `GET /api/loans/:id`
@@ -79,3 +94,4 @@ Al ejecutar las pruebas, se obtienen 4 éxitos. El objetivo de esta prueba fue (
 
 **Sobre la Limpieza (tearDownClass):**
 En la clase de prueba se implementó el método `tearDownClass()`, cuya responsabilidad teórica es conectarse a la Base de Datos para eliminar todos los datos falsos generados durante la etapa previa (`setUpClass`). Sin embargo, su implementación actual se limita a un print(), debido a que para el estado actual de nuestro MVP, el backend no expone explícitamente un endpoint o lógica para eliminar préstamos (como un `DELETE /api/loans/:id`). Por ello, se simula formalmente la fase para cumplir con el estándar de unittest sin modificar artificialmente o ensuciar las rutas de producción.
+
