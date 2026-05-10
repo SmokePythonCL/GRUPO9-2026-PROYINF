@@ -1,0 +1,28 @@
+
+[TEST CÁLCULO MONTHLY] Validar fórmula: monthly = (amount * rate) / (1 - (1 + rate)^-term)
+
+  Caso: amount=1000000, term=12
+    Monthly esperado: 89975
+    Monthly recibido: 89975
+
+  Caso: amount=500000, term=36
+    Monthly esperado: 17186
+    Monthly recibido: 17186
+
+[TEST CÁLCULO TOTAL] Validar relación: total ≈ monthly * term
+
+  Caso: amount=5000000, term=24
+    Monthly: 241010
+    Total esperado (monthly * term): 5784240
+    Total recibido: 5784248
+
+  Caso: amount=3000000, term=18
+    Monthly: 186308
+    Total esperado (monthly * term): 3353544
+    Total recibido: 3353550
+
+[TEST VALIDACIÓN INPUTS] Manejar casos inválidos
+
+  Probando con amount negativo...
+
+Pruebas de TestCalculoMonto finalizadas. Limpieza completada.
