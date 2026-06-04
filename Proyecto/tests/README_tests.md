@@ -11,14 +11,14 @@
 
 Prueba: `POST /api/loans/`
 
-|Input | Output esperado |Contexto de ejecución|
-|-----|---------|-------|
-|amount: 1000000, term: 12| 89975 | Simulación exitosa de la cuota monthly en base a inputs dados.|
-|amount: 500000, term: 36| 17186 | Simulación exitosa de la cuota monthly en base a inputs dados.|
-|amount: 5000000, term: 24| 5784240 | Simulación exitosa del monto total en base a inputs dados.|
-|amount: 3000000, term: 18| 3353544 | Simulación exitosa del monto total en base a inputs dados.|
-|amount: -1000000, term: 12| Error | Simulación fallida de la cuota monthly dado que un amount negativo no debería ser admitido. |
-|amount: 1000000, term: 0| 1012000 | Simulación exitosa del monto total con un term igual a cero, el cual en backend es pasado a term=1.|
+|Input | Output esperado |
+|-----|---------|
+|amount: 1000000, term: 12| 89975 | 
+|amount: 500000, term: 36| 17186 | 
+|amount: 5000000, term: 24| 5784240 | 
+|amount: 3000000, term: 18| 3353544 | 
+|amount: -1000000, term: 12| Error | 
+|amount: 1000000, term: 0| 1012000 | 
 
 <br>
 
@@ -50,14 +50,14 @@ Para "test_manejo_amounts_invalidos", hubo una prueba fallida a la hora de inten
 
 ### Martina: envío real de solicitud de préstamo con autorización
 
-| Input | Output esperado | Contexto de ejecución |
-|---|---|---|
-| `GET /api/health` | `200 OK` | Backend Express levantado en `http://localhost:4000` usando Docker Compose. |
-| `POST /api/auth/register` con usuario de prueba válido | `201 Created` | Se crea un usuario temporal para ejecutar la prueba. |
-| `POST /api/auth/login` con email y password válidos | `200 OK` y token JWT | Se obtiene un token para acceder a rutas protegidas. |
-| `POST /api/loans` con `amount=500000`, `term=12`, sin `dryRun` y con header `Authorization: Bearer <token>` | `201 Created` e `id` con formato `L-...` | Valida el envío real de una solicitud de préstamo autenticada. |
-| `GET /api/loans/:id` con token válido | `200 OK` y `loan_id_str` igual al ID creado | Valida que el préstamo real fue persistido y puede consultarse. |
-| `POST /api/loans` con `amount=500000`, `term=12`, sin `dryRun` y sin token | `401 Unauthorized` | Valida que el backend bloquea solicitudes reales sin autorización. |
+| Input | Output esperado |
+|---|---|
+| `GET /api/health` | `200 OK` | 
+| `POST /api/auth/register` con usuario de prueba válido | `201 Created` |
+| `POST /api/auth/login` con email y password válidos | `200 OK` y token JWT |
+| `POST /api/loans` con `amount=500000`, `term=12`, sin `dryRun` y con header `Authorization: Bearer <token>` | `201 Created` e `id` con formato `L-...` | 
+| `GET /api/loans/:id` con token válido | `200 OK` y `loan_id_str` igual al ID creado | 
+| `POST /api/loans` con `amount=500000`, `term=12`, sin `dryRun` y sin token | `401 Unauthorized` |
 
 
 **Estrategia de prueba**
@@ -82,10 +82,10 @@ Se usó partición por clases de equivalencia para comparar dos casos principale
 ### Alejandro: Historial de prestamos (HU007)
 Prueba a Prueba: GET /api/loans/
 
-|Input | Output esperado |Contexto de ejecución|
-|-----|---------|-------|
-|Obtener el historial de prestamos| 200 OK| Comprobar si el GET retorna el historial en dos usuarios|
-|Obtener los campos de un prestamo en el historial|Lista de campos del prestamo hecho y una lista vacia|Comprobar que retorna los datos de prestamo con o sin historial
+|Input | Output esperado |
+|-----|---------|
+|Obtener el historial de prestamos| 200 OK| 
+|Obtener los campos de un prestamo en el historial|Lista de campos del prestamo hecho y una lista vacia|
 
 
 ![Resultados test Alejandro](./screenshots/test_historial.png)
@@ -102,12 +102,12 @@ Las pruebas fueron exitosas, ambas pruebas retornaron lo esperado, codigo 200 pa
 Prueba: `GET /api/loans/:id`
 
 
-|Input | Output esperado |Contexto de ejecución|
-|-----|---------|-------|
-|id válido + Token propio| 200 OK + JSON completo | Consulta exitosa de un préstamo existente perteneciente al usuario.|
-|id inexistente|404 Not Found|Búsqueda de un préstamo que no figura en la base de datos|
-|id válido + Token ajeno|404/403 Error|Intento de acceso a datos de otro usuario (Validación de privacidad).|
-|Sin Token de acceso|401 Unauthorized|Intento de consulta sin autenticación previa.|
+|Input | Output esperado |
+|-----|---------|
+|id válido + Token propio| 200 OK + JSON completo | 
+|id inexistente|404 Not Found|
+|id válido + Token ajeno|404/403 Error|
+|Sin Token de acceso|401 Unauthorized|
 
 <br>
 
