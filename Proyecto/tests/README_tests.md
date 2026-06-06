@@ -84,8 +84,8 @@ Prueba a Prueba: GET /api/loans/
 
 |Input | Output esperado |
 |-----|---------|
-|Obtener el historial de prestamos| 200 OK| 
-|Obtener los campos de un prestamo en el historial|Lista de campos del prestamo hecho y una lista vacia|
+|Inicio de sesion con credenciales validas| 200 OK| 
+|Credenciales con un prestamo y sin prestamos|Lista de campos del prestamo hecho y una lista vacia|
 
 
 ![Resultados test Alejandro](./screenshots/test_historial.png)
