@@ -15,7 +15,9 @@ services:
     depends_on:
       - backend
   backend:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "4000:4000"
     environment:
