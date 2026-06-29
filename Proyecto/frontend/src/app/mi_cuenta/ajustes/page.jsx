@@ -63,8 +63,9 @@ export default function ConfiguracionPage() {
 
       <form className="space-y-4" onSubmit={handleSubmit}>
         <div>
-          <label className="font-medium">Nombre</label>
+          <label htmlFor="nombre-input" className="font-medium">Nombre</label>
           <input
+            id="nombre-input"
             type="text"
             className="w-full border p-2 rounded"
             value={nombre}
@@ -74,8 +75,9 @@ export default function ConfiguracionPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="font-medium">Apellido paterno</label>
+            <label htmlFor="apellido-paterno-input" className="font-medium">Apellido paterno</label>
             <input
+              id="apellido-paterno-input"
               type="text"
               className="w-full border p-2 rounded"
               value={apellidoPaterno}
@@ -84,8 +86,9 @@ export default function ConfiguracionPage() {
           </div>
 
           <div>
-            <label className="font-medium">Apellido materno</label>
+            <label htmlFor="apellido-materno-input" className="font-medium">Apellido materno</label>
             <input
+              id="apellido-materno-input"
               type="text"
               className="w-full border p-2 rounded"
               value={apellidoMaterno}
@@ -95,8 +98,9 @@ export default function ConfiguracionPage() {
         </div>
 
         <div>
-          <label className="font-medium">Fecha de nacimiento</label>
+          <label htmlFor="nacimiento-input" className="font-medium">Fecha de nacimiento</label>
           <input
+            id="nacimiento-input"
             type="date"
             className="w-full border p-2 rounded"
             value={nacimiento}
@@ -105,8 +109,9 @@ export default function ConfiguracionPage() {
         </div>
 
         <div>
-          <label className="font-medium">RUT (no editable)</label>
+          <label htmlFor="rut-input" className="font-medium">RUT (no editable)</label>
           <input
+            id="rut-input"
             type="text"
             className="w-full border p-2 rounded bg-gray-100 text-gray-600 cursor-not-allowed"
             value={rut}
@@ -116,8 +121,9 @@ export default function ConfiguracionPage() {
         </div>
 
         <div>
-          <label className="font-medium">Correo electrónico</label>
+          <label htmlFor="correo-input" className="font-medium">Correo electrónico</label>
           <input
+            id="correo-input"
             type="email"
             className="w-full border p-2 rounded"
             value={correo}
@@ -126,8 +132,9 @@ export default function ConfiguracionPage() {
         </div>
 
         <div>
-          <label className="font-medium">Teléfono</label>
+          <label htmlFor="telefono-input" className="font-medium">Teléfono</label>
           <input
+            id="telefono-input"
             type="text"
             className="w-full border p-2 rounded"
             value={telefono}
