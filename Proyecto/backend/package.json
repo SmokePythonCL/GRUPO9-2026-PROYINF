@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "main": "server.js",
     "scripts": {
-        "start": "wait-port postgres_db:5432 && node index.js"
+        "start": "wait-port postgres_db:5432 && node server.js"
     },
     "dependencies": {
         "express": "^4.18.2",

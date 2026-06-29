@@ -124,7 +124,7 @@ exports.updatePaymentMethod = async (req, res) => {
     res.status(500).json({ error: 'Error interno' });
   }
 };
-exports.creditHistory = authMiddleware, (req, res) => {
+exports.creditHistory = (req, res) => {
   // Parsing numbers out of rut to seed
   const numSeed = parseInt(req.user.rut.replace(/\D/g, '')) || 12345;
   const seed = (numSeed * 97) % 600;

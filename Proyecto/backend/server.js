@@ -1,8 +1,8 @@
 const express = require('express');
 const path = require('path');
-
+const pool = require('./db');
 const corsConfig = require('./config/cors');
-
+const port = process.env.PORT || 4000;
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const loanRoutes = require('./routes/loanRoutes');
@@ -29,9 +29,7 @@ app.get('/api/health', (req, res) =>
 );
 
 
-// -------------------------------------------------------------
-// 🔥 Crear columnas automáticamente (incluye telefono)
-// -------------------------------------------------------------
+
 async function initSchema() {
   await pool.query(`DROP TABLE IF EXISTS loans CASCADE;`);
   await pool.query(`DROP TABLE IF EXISTS user_documents CASCADE;`);

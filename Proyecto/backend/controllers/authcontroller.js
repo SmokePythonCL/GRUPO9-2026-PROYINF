@@ -2,7 +2,7 @@
 // -------------------------------------------------------------
 // Login
 // -------------------------------------------------------------
-exports.post('/api/auth/login', async (req, res) => {
+exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -22,14 +22,14 @@ exports.post('/api/auth/login', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});
+};
 
 
 
 // -------------------------------------------------------------
 // Registro
 // -------------------------------------------------------------
-exports.post('/api/auth/register', async (req, res) => {
+exports.register =  async (req, res) => {
   try {
     const {
       nombre,
@@ -75,4 +75,4 @@ exports.post('/api/auth/register', async (req, res) => {
     console.error('REGISTER ERROR:', err);
     res.status(500).json({ error: 'Error interno' });
   }
-});
+};
